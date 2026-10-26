@@ -41,6 +41,10 @@ from powercontext.sources.definitions import SourceDefinition, SourceProjection
 from powercontext.sources.models import Source, SourceMaterialization, SourceRef
 from powercontext.sources.projections import TEXT_EVIDENCE_PROJECTION_KEY, TextEvidence
 
+# The PDF feature is deliberately paused while other competition work proceeds.
+# Keep the implementation intact; change this switch to restore normal behavior.
+PDF_PROCESSING_ENABLED: bool = False
+
 
 class PDFDocumentInput(BaseModel):
     """Original complete PDF bytes, never a pre-extracted text document."""
@@ -76,9 +80,15 @@ def _validate_document_id(value: str) -> None:
         raise ValueError("PDF document_id must not be blank")  # noqa: TRY003
 
 
+def _require_pdf_processing() -> None:
+    if not PDF_PROCESSING_ENABLED:
+        raise NotImplementedError("PDF page processing is temporarily disabled")
+
+
 def parse_pdf_document(value: PDFDocumentInput) -> tuple[PDFPageInput, ...]:
     """Extract every page atomically using the shared, locked PDF parser."""
 
+    _require_pdf_processing()
     _validate_document_id(value.document_id)
     digest = hashlib.sha256(value.content).hexdigest()
     try:
@@ -390,6 +400,7 @@ def _page_candidates(records: MemoryEntriesPage) -> dict[tuple[str, int, str, st
 async def search_pdf_pages(memory: _ScopedPDFMemory, question: str, limit: int = 10) -> tuple[MemoryCitation, ...]:
     """Search real scoped Memory, then rank and verify distinct exact page citations."""
 
+    _require_pdf_processing()
     if not isinstance(limit, int) or isinstance(limit, bool):
         raise ValueError("PDF search limit must be an integer")  # noqa: TRY003, TRY004
     if limit <= 0 or not question.strip():
