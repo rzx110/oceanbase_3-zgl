@@ -720,7 +720,8 @@ def _artifact_processing_bindings(  # noqa: C901 - validate and assemble one reg
         "skill": None,
     }
     for family, schedule in automatic.items():
-        if schedule is not None and family not in declared | registered:
+        threshold = getattr(config.runtime, f"{family.replace('-', '_')}_source_count_threshold", None)
+        if (schedule is not None or threshold is not None) and family not in declared | registered:
             if (
                 family == "topic-memory"
                 and config.runtime.artifact_processing_families is None
@@ -770,6 +771,7 @@ def _artifact_processing_bindings(  # noqa: C901 - validate and assemble one reg
         else:
             entrypoint = partial(run_family_worker, FamilyWorkerSpec(config=config, worker_security=worker_security))
         interval = None if family == "profile" else automatic[family]
+        count_threshold = getattr(config.runtime, f"{prefix}_source_count_threshold", None)
         binding = canonical[family]
         configured.append(
             ArtifactProcessingBinding(
@@ -785,7 +787,10 @@ def _artifact_processing_bindings(  # noqa: C901 - validate and assemble one reg
                 timezone=config.runtime.profile_timezone if family == "profile" else "Asia/Shanghai",
                 pending_provider=None
                 if family == "skill"
-                else SourceProcessingPendingProvider(contexts.database, binding, family),
+                else SourceProcessingPendingProvider(
+                    contexts.database, binding, family, count_threshold=count_threshold
+                ),
+                pending_reconcile_interval=None if count_threshold is None else timedelta(seconds=0.5),
                 automatic_scope_filter=enabled_profile_scopes if family == "profile" else None,
             )
         )

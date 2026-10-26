@@ -16,14 +16,14 @@
 
 from __future__ import annotations
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from powercontext.builtin.persistence.cursors import SourceCursorRepository
 from powercontext.builtin.persistence.database import AsyncDatabase
 from powercontext.builtin.persistence.processing_intents import ArtifactProcessingIntentRepository
 from powercontext.builtin.persistence.supervision import ArtifactProcessingFence, ArtifactProcessingLeaseRepository
-from powercontext.builtin.persistence.tables import PROFILE_POLICIES_TABLE, SOURCE_JOURNAL_HEADS_TABLE
+from powercontext.builtin.persistence.tables import PROFILE_POLICIES_TABLE, SOURCE_JOURNAL_HEADS_TABLE, SOURCES_TABLE
 
 
 async def enabled_profile_scopes(connection: AsyncConnection, scope_ids: tuple[str, ...]) -> frozenset[str]:
@@ -48,10 +48,13 @@ async def enabled_profile_scopes(connection: AsyncConnection, scope_ids: tuple[s
 class SourceProcessingPendingProvider:
     """Inspect journal metadata, never Source bodies, prompts, or models."""
 
-    def __init__(self, database: AsyncDatabase, binding_name: str, artifact_family: str) -> None:
+    def __init__(
+        self, database: AsyncDatabase, binding_name: str, artifact_family: str, *, count_threshold: int | None = None
+    ) -> None:
         self._database = database
         self._binding = binding_name
         self._family = artifact_family
+        self._count_threshold = count_threshold
 
     async def reconcile(self, after_scope_id: str | None, limit: int, *, fence: ArtifactProcessingFence) -> str | None:
         heads = SOURCE_JOURNAL_HEADS_TABLE
@@ -72,5 +75,20 @@ class SourceProcessingPendingProvider:
                     continue
                 intent = await intents.load(connection, scope, self._binding, for_update=True)
                 if intent is None or intent.dirty_generation == intent.clean_generation:
-                    await intents.mark_dirty(connection, scope, self._binding)
+                    intent = await intents.mark_dirty(connection, scope, self._binding)
+                if self._count_threshold is not None and intent.requested_generation == intent.handled_generation:
+                    # Count durable identities, including lineage-only Sources.
+                    # Journal positions are cursors, not counts: gaps need not
+                    # imply additional Source rows.
+                    after = 0 if cursor is None else cursor.cursor.sequence
+                    pending = await connection.scalar(
+                        select(func.count())
+                        .select_from(SOURCES_TABLE)
+                        .where(
+                            SOURCES_TABLE.c.scope_id == scope,
+                            SOURCES_TABLE.c.journal_position > after,
+                        )
+                    )
+                    if int(pending or 0) >= self._count_threshold:
+                        await intents.request(connection, scope, self._binding)
         return str(rows[-1][0]) if len(rows) == limit else None

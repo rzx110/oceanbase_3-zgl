@@ -117,8 +117,9 @@ class ArtifactProcessingBinding:
     # Only automatic admission is filtered; already accepted requests retain
     # their own Worker authorization and domain completion semantics.
     automatic_scope_filter: Callable[[AsyncConnection, tuple[str, ...]], Awaitable[frozenset[str]]] | None = None
+    pending_reconcile_interval: timedelta | None = None
 
-    def __post_init__(self) -> None:
+    def __post_init__(self) -> None:  # noqa: C901 - Validate independent binding settings.
         if not self.binding_name or self.binding_name != self.binding_name.strip():
             raise ValueError("binding_name must be nonempty and trimmed")  # noqa: TRY003
         if re.fullmatch(r"[a-z][a-z0-9-]*", self.artifact_family) is None:
@@ -138,6 +139,8 @@ class ArtifactProcessingBinding:
                 raise ValueError("interval and cron cannot both be enabled")  # noqa: TRY003
         if self.cron is not None:
             CronTrigger.from_crontab(self.cron, timezone=ZoneInfo(self.timezone))
+        if self.pending_reconcile_interval is not None and self.pending_reconcile_interval.total_seconds() <= 0:
+            raise ValueError("pending reconciliation interval must be positive")  # noqa: TRY003
 
 
 class _WorkerResultSender(Protocol):
@@ -397,6 +400,7 @@ class _FamilyState:
     scan_in_progress: bool = False
     reconcile_after: str | None = None
     reconcile_complete: bool = False
+    next_reconcile_at: float = 0.0
     notification_at_start: int = 0
     discovery_pending: bool = True
     next_schedule_at: float | None = None
@@ -639,11 +643,18 @@ class ArtifactProcessingSupervisor:
     async def _discover(self, state: _FamilyState) -> None:
         binding = state.binding
         loop = asyncio.get_running_loop()
+        interval = binding.pending_reconcile_interval
+        if interval is not None and state.reconcile_complete and loop.time() >= state.next_reconcile_at:
+            state.reconcile_complete = False
+            state.reconcile_after = None
         if not state.reconcile_complete and binding.pending_provider is not None:
             state.reconcile_after = await binding.pending_provider.reconcile(
                 state.reconcile_after, _DISCOVERY_PAGE_SIZE, fence=self._require_current_fence()
             )
             state.reconcile_complete = state.reconcile_after is None
+            state.discovery_pending = True
+            if state.reconcile_complete and interval is not None:
+                state.next_reconcile_at = loop.time() + interval.total_seconds()
             if not state.reconcile_complete:
                 state.next_discovery_at = loop.time() + _DISCOVERY_PAGE_DELAY_SECONDS
         else:
@@ -1093,6 +1104,8 @@ class ArtifactProcessingSupervisor:
                 continue
             if state.next_schedule_at is not None:
                 deadlines.append(state.next_schedule_at)
+            if state.binding.pending_reconcile_interval is not None and state.reconcile_complete:
+                deadlines.append(state.next_reconcile_at)
             if state.discovery_pending or state.scan_in_progress or not state.reconcile_complete or state.degraded:
                 deadlines.append(max(now, state.next_discovery_at))
         return None if not deadlines else max(0.001, min(deadlines) - now)
