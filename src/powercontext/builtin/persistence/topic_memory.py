@@ -54,6 +54,7 @@ from powercontext.builtin.persistence.supervision import database_utc_now
 from powercontext.builtin.persistence.tables import (
     ARTIFACT_HEADS_TABLE,
     ARTIFACTS_TABLE,
+    SOURCE_LIFECYCLE_TABLE,
     TOPIC_MEMORY_ACTIVE_CHUNKS_TABLE,
     TOPIC_MEMORY_ACTIVE_TOPICS_TABLE,
     TOPIC_MEMORY_RETRIEVAL_SHAPE_TABLE,
@@ -487,6 +488,28 @@ class TopicMemoryRepository:
             admission=admission,
         )
         channels = await self.index.search(connection, scope_id, request)
+        lifecycle = SOURCE_LIFECYCLE_TABLE
+        excluded = set(
+            await connection.execute(
+                select(lifecycle.c.reference_id, lifecycle.c.reference_revision)
+                .where(lifecycle.c.scope_id == scope_id, lifecycle.c.kind == "topic")
+                .group_by(lifecycle.c.reference_id, lifecycle.c.reference_revision)
+                .having(func.max(lifecycle.c.available) == 0)
+            )
+        )
+        if excluded:
+            # Each channel has already collapsed chunks to distinct Topics.
+            # Exclude unavailable revisions before fusion and final limiting.
+            channels = channels.model_copy(
+                update={
+                    name: tuple(
+                        hit
+                        for hit in getattr(channels, name)
+                        if (hit.artifact_ref.artifact_id, hit.artifact_ref.revision) not in excluded
+                    )
+                    for name in ("topic_fts", "topic_vector", "detail_fts", "detail_vector")
+                }
+            )
         await self._check_retrieval_shape(connection)
         outcome = _fuse_topic_memory_rankings(query, channels, limit, mode=used_mode, admission=admission)
         return TopicMemorySearchResult(
