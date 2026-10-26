@@ -1,0 +1,38 @@
+name: Competition seekdb hybrid
+
+on:
+  push:
+    branches: [2026-competition]
+    paths:
+      - .github/workflows/competition-hybrid.yml
+      - src/powercontext/builtin/persistence/seekdb/**
+      - src/powercontext/builtin/runtime/composition.py
+      - tests/builtin/persistence/test_seekdb_hybrid.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: competition-hybrid-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  native-hybrid:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Build the fixed public evaluation environment
+        run: docker compose -f competition/compose.yaml build selftest
+      - name: Test the actual embedded seekdb offline
+        run: |
+          docker compose -f competition/compose.yaml run --rm \
+            -v "$PWD/tests:/candidate/tests:ro" selftest \
+            python -m pytest -q -s -c /selftest/pytest.ini \
+            --confcutdir=/candidate/tests/builtin/persistence \
+            /selftest/challenges/retrieval-02-hybrid-search/acceptance \
+            /candidate/tests/builtin/persistence/test_seekdb_hybrid.py
