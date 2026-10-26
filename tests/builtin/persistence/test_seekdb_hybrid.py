@@ -47,7 +47,11 @@ class _Embedding:
     async def embed(self, texts, /):
         vectors = []
         for text in texts:
-            vector = [0.0] * 384
+            # Continuous deterministic noise avoids an artificial sea of exact
+            # L2 ties. Tie order is explicitly allowed to differ from the frozen
+            # implementation, so it cannot serve as a full-tuple comparison oracle.
+            noise = hashlib.shake_256(text.encode()).digest(768)
+            vector = [(int.from_bytes(noise[index : index + 2]) / 32768 - 1) * 0.001 for index in range(0, 768, 2)]
             for term in re.findall(r"\w+", text.casefold()):
                 digest = hashlib.sha256(term.encode()).digest()
                 vector[int.from_bytes(digest[:2]) % 384] += 1.0 if digest[2] & 1 else -1.0
