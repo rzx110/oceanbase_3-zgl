@@ -32,12 +32,13 @@ from pypdf import PdfReader
 from powercontext.builtin.artifacts.memory.models import MemoryCitation, MemoryHit
 from powercontext.builtin.runtime.models import (
     GetMemoryEntryRequest,
+    MemoryEntriesPage,
     MemoryEntryRecord,
     MemorySearchPage,
     SearchMemoryRequest,
 )
 from powercontext.sources.definitions import SourceDefinition, SourceProjection
-from powercontext.sources.models import Source, SourceMaterialization
+from powercontext.sources.models import Source, SourceMaterialization, SourceRef
 from powercontext.sources.projections import TEXT_EVIDENCE_PROJECTION_KEY, TextEvidence
 
 
@@ -154,6 +155,8 @@ PDF_PAGE_SOURCE_DEFINITION: SourceDefinition[PDFPageInput, PDFPageSource, PDFPag
 
 
 class _ScopedPDFMemory(Protocol):
+    async def list(self) -> MemoryEntriesPage: ...
+
     async def search(self, request: SearchMemoryRequest, /) -> MemorySearchPage: ...
 
     async def get(self, request: GetMemoryEntryRequest, /) -> MemoryEntryRecord: ...
@@ -165,6 +168,8 @@ _STOPWORDS = frozenset(
     "i we you it its our your this that these those any all if then than not no "
     "please answer respond response question give state define calculate assuming perspective "
     "investment analyst only use using used details shown within relying provided based "
+    "according assuming reported report reports directly outlined explicitly quantity "
+    "materially important ongoing primarily respond stated state following whether "
     "fy fiscal year annual report form usd million millions billion billions".split()
 )
 
@@ -188,6 +193,9 @@ _FINANCIAL_ALIASES = (
     (frozenset({"assets", "liabilities", "equity", "balance"}), ("balance", "assets", "liabilities", "equity")),
     (frozenset({"dividend", "dividends", "repurchases", "buybacks"}), ("dividends", "repurchases", "stock", "cash")),
     (frozenset({"tax", "taxes", "taxation"}), ("tax", "taxes", "effective", "rate")),
+    (frozenset({"liquidity", "current", "quick", "working"}), ("current", "assets", "liabilities", "balance")),
+    (frozenset({"turnover", "inventory", "inventories"}), ("inventory", "inventories", "cost", "sales", "balance")),
+    (frozenset({"return", "roa", "roe"}), ("net", "income", "assets", "equity", "balance")),
 )
 
 
@@ -226,7 +234,9 @@ _SECTION_HINTS = {
     ),
     "legal": (
         "legal proceedings contingencies",
-        re.compile(r"^(?:item \d+[a-z]?\.? )?(?:legal proceedings|commitments and contingencies)"),
+        re.compile(
+            r"^(?:(?:item |note )?\d+[a-z]?\.? )?(?:legal proceedings|commitments and contingencies|contingencies)"
+        ),
     ),
     "geography": (
         "geographic segments divisions",
@@ -242,7 +252,7 @@ def _document_intents(question: str) -> frozenset[str]:
         intents.add("income")
     if terms & {"ebitda", "cash", "capex", "depreciation", "amortization"}:
         intents.add("cash")
-    if terms & {"balance", "assets", "liabilities", "equity"}:
+    if terms & {"balance", "assets", "liabilities", "equity", "liquidity", "working", "quick", "current", "roa", "roe"}:
         intents.add("balance")
     if terms & {"legal", "litigation", "lawsuit", "lawsuits", "battles"}:
         intents.add("legal")
@@ -252,12 +262,20 @@ def _document_intents(question: str) -> frozenset[str]:
 
 
 def _heading_score(text: str, intents: frozenset[str]) -> float:
-    lines = [" ".join(line.lower().split()) for line in text.partition("\n")[2].splitlines() if line.strip()][:32]
+    lines = [" ".join(line.lower().split()) for line in text.partition("\n")[2].splitlines() if line.strip()]
     # Match real heading starts, not a statement mentioned inside a paragraph.
     # Trailing page numbers identify most table-of-contents / exhibit references.
     headings = [line for line in lines if not re.search(r"\d\s*$", line)]
     headings.extend(f"{left} {right}" for left, right in pairwise(lines) if not re.search(r"\d\s*$", right))
-    return sum(8.0 for intent in intents if any(_SECTION_HINTS[intent][1].search(line) for line in headings))
+    # A financial-statement index can repeat every title without containing the
+    # corresponding table. Require actual non-year figures for table headings.
+    figures = sum(1 for token in _terms(text) if token.isdigit() and not re.fullmatch(r"(?:19|20)\d{2}", token))
+    return sum(
+        16.0
+        for intent in intents
+        if (intent not in {"income", "cash", "balance"} or figures >= 12)
+        and any(_SECTION_HINTS[intent][1].search(line) for line in headings)
+    )
 
 
 def _query_plan(question: str) -> tuple[tuple[str, ...], dict[str, float], tuple[str, ...]]:
@@ -317,7 +335,7 @@ def _rank_pages(
         requested_years = {term for term in query_words if re.fullmatch(r"(?:19|20)\d{2}", term)}
         if years and requested_years:
             total += 3.0 if years & requested_years else -3.0
-        return total + 5.0 * votes[_hit_key(hit)] + _heading_score(hit.text, intents)
+        return total + 5.0 * votes.get(_hit_key(hit), 0.0) + _heading_score(hit.text, intents)
 
     return [hits[index] for index in sorted(range(len(hits)), key=lambda index: (-score(index), _hit_key(hits[index])))]
 
@@ -340,6 +358,30 @@ def _company_candidates(hits: Sequence[MemoryHit], question: str) -> tuple[Memor
     return tuple(matched) if matched else tuple(hits)
 
 
+def _single_page_id(references: Sequence[SourceRef]) -> str | None:
+    if not references or any(reference.source_type != "pdf-page" for reference in references):
+        return None
+    identities = {reference.source_id for reference in references}
+    return next(iter(identities)) if len(identities) == 1 else None
+
+
+def _page_candidates(records: MemoryEntriesPage) -> dict[tuple[str, int, str, str], MemoryHit]:
+    candidates = {}
+    for record in records.entries:
+        if _single_page_id(record.entry.sources) is None:
+            continue
+        hit = MemoryHit(
+            memory_ref=record.memory_ref,
+            entry_id=record.entry.entry_id,
+            entry_version_id=record.entry.entry_version_id,
+            text=record.entry.text,
+            score=0.0,
+            matched_by=(),
+        )
+        candidates[_hit_key(hit)] = hit
+    return candidates
+
+
 async def search_pdf_pages(memory: _ScopedPDFMemory, question: str, limit: int = 10) -> tuple[MemoryCitation, ...]:
     """Search real scoped Memory, then rank and verify distinct exact page citations."""
 
@@ -348,13 +390,20 @@ async def search_pdf_pages(memory: _ScopedPDFMemory, question: str, limit: int =
     if limit <= 0 or not question.strip():
         return ()
     queries, weights, salient = _query_plan(question)
-    candidates: dict[tuple[str, int, str, str], MemoryHit] = {}
     votes: dict[tuple[str, int, str, str], float] = {}
+    # The public scoped list supplies the complete active corpus. A bounded FTS
+    # result is a useful ranking signal, but is not a complete page inventory:
+    # admission floors and lexical truncation can hide the only evidence page.
+    # Keep each citation issued by Memory; never derive it from page metadata.
+    candidates = _page_candidates(await memory.list())
     for query in queries:
         page = await memory.search(SearchMemoryRequest(query=query, mode="fts", limit=max(80, min(200, limit * 6))))
         for rank, hit in enumerate(page.hits, start=1):
             key = _hit_key(hit)
-            candidates.setdefault(key, hit)
+            # Search may race a newer revision. Only rank the single snapshot
+            # whose active, page-backed entries were returned by list().
+            if key not in candidates:
+                continue
             votes[key] = votes.get(key, 0.0) + 1.0 / (60 + rank)
     results: list[MemoryCitation] = []
     seen_pages: set[str] = set()
@@ -365,11 +414,9 @@ async def search_pdf_pages(memory: _ScopedPDFMemory, question: str, limit: int =
             memory_ref=hit.memory_ref, entry_id=hit.entry_id, entry_version_id=hit.entry_version_id
         )
         record = await memory.get(GetMemoryEntryRequest(citation=citation))
-        references = record.entry.sources
-        page_ids = {reference.source_id for reference in references if reference.source_type == "pdf-page"}
-        if len(page_ids) != 1 or any(reference.source_type != "pdf-page" for reference in references):
+        page_id = _single_page_id(record.entry.sources)
+        if page_id is None:
             continue
-        page_id = next(iter(page_ids))
         if page_id in seen_pages:
             continue
         seen_pages.add(page_id)

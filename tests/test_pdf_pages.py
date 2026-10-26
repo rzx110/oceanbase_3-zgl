@@ -214,6 +214,30 @@ async def test_scoped_search_is_revision_exact_distinct_and_retrieves_financial_
             entry = (await memory.get(GetMemoryEntryRequest(citation=citation))).entry
             financial_pages.add(expected[entry.sources[0].source_id].page_number)
         assert financial_pages == {2, 4}
+
+        class SparseSearchMemory:
+            """An incomplete lexical index must not define the evidence corpus."""
+
+            async def list(self):
+                return await memory.list()
+
+            async def search(self, request, /):
+                result = await memory.search(request)
+                return result.model_copy(update={"hits": ()})
+
+            async def get(self, request, /):
+                return await memory.get(request)
+
+        sparse = await search_pdf_pages(
+            SparseSearchMemory(),
+            "What is Alpha FY2024 EBITDA using operating income and cash flows?",
+            limit=2,
+        )
+        sparse_pages = set()
+        for citation in sparse:
+            entry = (await memory.get(GetMemoryEntryRequest(citation=citation))).entry
+            sparse_pages.add(expected[entry.sources[0].source_id].page_number)
+        assert sparse_pages == {2, 4}
         assert await search_pdf_pages(memory, "cash", limit=0) == ()
         assert await search_pdf_pages(memory, " ", limit=20) == ()
         isolated = await search_pdf_pages(runtime.memory.for_scope(other.scope_id), "geographic regions", limit=20)
