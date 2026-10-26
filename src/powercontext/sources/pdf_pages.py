@@ -347,13 +347,18 @@ def _hit_key(hit: MemoryHit) -> tuple[str, int, str, str]:
 def _company_candidates(hits: Sequence[MemoryHit], question: str) -> tuple[MemoryHit, ...]:
     """Prefer explicitly named report issuers when several reports share a scope."""
 
-    compact_question = re.sub(r"[^a-z0-9]", "", question.lower())
     matched: list[MemoryHit] = []
     for hit in hits:
         document_id = hit.text.partition("\n")[0]
         prefix = re.split(r"(?:19|20)\d{2}", document_id, maxsplit=1)[0]
         issuer = re.sub(r"[^a-z0-9]", "", prefix.lower())
-        if len(issuer) >= 3 and issuer in compact_question:
+        # Preserve short and alphanumeric issuer names. Whole-name boundaries
+        # avoid matching a short name inside an unrelated word, while optional
+        # separators accept spaces and hyphens in the natural-language question.
+        if len(issuer) < 2 or not re.search(r"[a-z]", issuer):
+            continue
+        pattern = r"(?<![a-z0-9])" + r"[\W_]*".join(map(re.escape, issuer)) + r"(?![a-z0-9])"
+        if re.search(pattern, question.lower()):
             matched.append(hit)
     return tuple(matched) if matched else tuple(hits)
 

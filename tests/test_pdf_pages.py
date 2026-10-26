@@ -247,3 +247,41 @@ async def test_scoped_search_is_revision_exact_distinct_and_retrieves_financial_
     async with open_builtin_contexts(config) as contexts:
         entries = await (await contexts.get(scope.scope_id)).sources.journal.entries()
         assert len(entries) == 5
+
+
+async def test_short_alphanumeric_issuer_is_not_lost_among_other_reports(tmp_path: Path) -> None:
+    registry = SourceDefinitionRegistry((PDF_PAGE_SOURCE_DEFINITION,))
+    requested = "Consolidated Statements of Earnings. Net sales 100. Income from operations 20."
+    distractor = (
+        "Consolidated Statements of Income. Earnings from operations. 7Q is a customer. Revenue 100. "
+        + "Operating income 20. " * 5
+    )
+    documents = {
+        "7Q_2024_10K": _pdf(requested),
+        "OMEGA_2024_10K": _pdf(*(distractor + f" Report unit {i}." for i in range(30))),
+    }
+    observations = []
+    target_id = None
+    for document_id, raw in documents.items():
+        for page in parse_pdf_document(PDFDocumentInput(document_id=document_id, content=raw)):
+            source = await registry.resolve(page)
+            observations.append(project_source_for_transport(registry, source))
+            if document_id == "7Q_2024_10K":
+                target_id = source.name
+    config = BuiltinConfig(database=SQLiteConfig(url=f"sqlite+aiosqlite:///{tmp_path / 'issuers.db'}"))
+    async with open_builtin_runtime(config, candidate_pipeline=_PagePipeline()) as runtime:
+        assert runtime.scopes is not None
+        scope = await runtime.scopes.create(ScopeDraft(title="Reports", summary="Issuers", idempotency_key="issuers"))
+        await runtime.ingestion.register(manifest_for_definition(PDF_PAGE_SOURCE_DEFINITION))
+        for observation in observations:
+            await runtime.ingestion.submit(SubmitSourceObservation(scope_id=scope.scope_id, observation=observation))
+        memory = runtime.memory.for_scope(scope.scope_id)
+        for _ in observations:
+            if not (await memory.flush()).processed:
+                break
+    async with open_builtin_runtime(config) as runtime:
+        memory = runtime.memory.for_scope(scope.scope_id)
+        citations = await search_pdf_pages(memory, "What is 7Q's operating income in FY2024?", limit=20)
+        retrieved = [(await memory.get(GetMemoryEntryRequest(citation=citation))).entry for citation in citations]
+        assert retrieved
+        assert any(entry.sources[0].source_id == target_id for entry in retrieved)
