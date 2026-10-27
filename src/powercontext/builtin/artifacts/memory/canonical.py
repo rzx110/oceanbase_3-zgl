@@ -78,10 +78,12 @@ def canonical_json(value: object) -> bytes:
     return rfc8785.dumps(_validated_json(value))
 
 
-def normalize_text(value: str, *, max_bytes: int = 8192) -> str:
+def normalize_text(value: str, *, max_bytes: int = 8192, preserve_unicode: bool = False) -> str:
     """Normalize and validate one durable entry body."""
 
     normalized = _normalize_non_empty_string(value, "memory entry text")
+    if preserve_unicode:
+        normalized = value.strip()
     if len(normalized.encode("utf-8")) > max_bytes:
         raise _CanonicalValueError("text-too-long")
     return normalized

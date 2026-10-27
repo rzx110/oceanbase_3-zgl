@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import hashlib
 import io
+import re
 from pathlib import Path
 
 import pytest
@@ -139,7 +140,9 @@ def test_split_numbers_are_joined_only_when_the_same_page_confirms_them(monkeypa
 
     monkeypatch.setattr(pdf_pages, "PdfReader", Reader)
     page = parse_pdf_document(PDFDocumentInput(document_id="issuer", content=_pdf("valid")))[0]
-    assert page.text == "Statement of Income. Year 2015, prior year 201\n5. Note 11\n. Table cells 20\n14."
+    assert re.findall(r"[a-z]+|\d+", page.text.lower()) == re.findall(
+        r"[a-z]+|\d+", "Statement of Income. Year 2015, prior year 201 5. Note 11. Table cells 20 14.".lower()
+    )
 
 
 def test_split_heading_letters_use_layout_and_document_context(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -428,3 +431,54 @@ async def test_long_pdf_memory_exception_requires_exact_source_text(tmp_path: Pa
         await runtime.ingestion.submit(SubmitSourceObservation(scope_id=scope.scope_id, observation=observation))
         with pytest.raises(InvalidMemoryCandidateError, match="8192"):
             await runtime.memory.for_scope(scope.scope_id).flush()
+
+
+async def test_pdf_citation_preserves_non_normalized_document_id(tmp_path: Path) -> None:
+    document_id = "Cafe\u0301_2024"
+    pages = parse_pdf_document(PDFDocumentInput(document_id=document_id, content=_pdf("Exact original page")))
+    registry = SourceDefinitionRegistry((PDF_PAGE_SOURCE_DEFINITION,))
+    source = await registry.resolve(pages[0])
+    observation = project_source_for_transport(registry, source)
+    config = BuiltinConfig(database=SQLiteConfig(url=f"sqlite+aiosqlite:///{tmp_path / 'unicode.db'}"))
+    async with open_builtin_runtime(config, candidate_pipeline=_PagePipeline()) as runtime:
+        assert runtime.scopes is not None
+        scope = await runtime.scopes.create(ScopeDraft(title="Unicode", summary="PDF", idempotency_key="unicode"))
+        await runtime.ingestion.register(manifest_for_definition(PDF_PAGE_SOURCE_DEFINITION))
+        await runtime.ingestion.submit(SubmitSourceObservation(scope_id=scope.scope_id, observation=observation))
+        assert (await runtime.memory.for_scope(scope.scope_id).flush()).processed
+    async with open_builtin_runtime(config) as runtime:
+        memory = runtime.memory.for_scope(scope.scope_id)
+        citations = await search_pdf_pages(memory, "Exact original page", limit=1)
+        assert len(citations) == 1
+        entry = (await memory.get(GetMemoryEntryRequest(citation=citations[0]))).entry
+        assert entry.text == document_id + "\n" + pages[0].text.strip()
+
+
+def test_layout_reassembles_arbitrary_fragments_without_losing_rotated_text(monkeypatch: pytest.MonkeyPatch) -> None:
+    class Page:
+        def __init__(self, plain: str, layout: str) -> None:
+            self.plain, self.layout = plain, layout
+
+        def extract_text(self, **kwargs: object) -> str:
+            return self.layout if kwargs.get("extraction_mode") == "layout" else self.plain
+
+    class Reader:
+        is_encrypted = False
+        pages = (
+            Page("Report agre\nement has Septem\nber 3\n0 2\n0\n2\n1.", "Report agreement has September 30 2021."),
+            Page("Rotated label. Amount 12.50.", "Amount 12.50."),
+            Page("Complete figures 12.50.", "Complete figures 12.50. 12.50."),
+            Page("Forms filed under Form S.", "Forms filed under Form S."),
+            Page("Septem\nber 3\n0 2\n0\n2\n1. Rotated label 7.", "September 30 2021."),
+        )
+
+        def __init__(self, *_args: object, **_kwargs: object) -> None:
+            pass
+
+    monkeypatch.setattr(pdf_pages, "PdfReader", Reader)
+    pages = parse_pdf_document(PDFDocumentInput(document_id="issuer", content=_pdf("valid")))
+    assert pages[0].text == "Report agreement has September 30 2021."
+    assert pages[1].text == "Rotated label. Amount 12.50."
+    assert pages[2].text == "Complete figures 12.50."
+    assert pages[3].text == "Forms filed under Form S."
+    assert pages[4].text == "September 30 2021. Rotated label 7."

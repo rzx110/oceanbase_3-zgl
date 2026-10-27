@@ -23,6 +23,7 @@ import math
 import re
 from collections import Counter
 from collections.abc import Sequence
+from difflib import SequenceMatcher
 from itertools import pairwise
 from typing import Annotated, Protocol
 
@@ -80,17 +81,12 @@ _SPLIT_YEAR = re.compile(r"(?<!\d)((?:19|20)\d?)[ \t]*\n[ \t]*(\d{1,2})(?!\d)")
 _FULL_YEAR = re.compile(r"(?<!\d)(?:19|20)\d{2}(?!\d)")
 _SPLIT_NOTE = re.compile(r"(?i)\b(note|item)([ \t\n]+)(\d{1,2})[ \t]*\n[ \t]*(\d)([ \t\n]*\.)")
 _FULL_NOTE = re.compile(r"(?i)\b(?:note|item)\s+(\d{1,3})\s*\.")
-_SPLIT_WORD = re.compile(r"(?<![a-zA-Z])([a-zA-Z]{3,})[ \t]*(?:\n[ \t]*)+([b-hj-zB-HJ-Z])(?![a-zA-Z])")
+_SPLIT_WORD = re.compile(r"(?<![a-zA-Z])([a-zA-Z]{3,})[ \t\n]+([b-hj-z])(?![a-zA-Z])")
 _FULL_WORD = re.compile(r"[a-zA-Z]+")
 
 
 def _repair_broken_tokens(plain: str, layout: str, document_words: set[str]) -> str:
-    """Join split tokens only when the same page's layout confirms them.
-
-    Some PDF producers draw the last digit separately at the same baseline;
-    plain extraction treats it as a new line. Count differences bound the
-    repair and retain every other character from the complete plain extraction.
-    """
+    """Join fragments corroborated by page layout or vocabulary in this PDF."""
     missing_years = Counter(_FULL_YEAR.findall(layout)) - Counter(_FULL_YEAR.findall(plain))
 
     def year(match: re.Match[str]) -> str:
@@ -135,16 +131,43 @@ def _repair_broken_tokens(plain: str, layout: str, document_words: set[str]) -> 
     return _SPLIT_WORD.sub(word, repaired)
 
 
-def _extract_page_text(page: PageObject, plain: str, document_words: set[str]) -> str:
-    if not (_SPLIT_YEAR.search(plain) or _SPLIT_NOTE.search(plain) or _SPLIT_WORD.search(plain)):
+def _reflow_preserving_characters(plain: str, layout: str) -> str:
+    """Transfer layout spacing while retaining text omitted by its layout pass."""
+    plain_positions = [index for index, character in enumerate(plain) if not character.isspace()]
+    layout_positions = [index for index, character in enumerate(layout) if not character.isspace()]
+    if not plain_positions or not layout_positions:
         return plain
+    plain_compact = "".join(plain[index] for index in plain_positions)
+    layout_compact = "".join(layout[index] for index in layout_positions)
+    gaps = [plain[: plain_positions[0]]]
+    gaps.extend(plain[left + 1 : right] for left, right in pairwise(plain_positions))
+    for block in SequenceMatcher(None, plain_compact, layout_compact, autojunk=False).get_matching_blocks():
+        for offset in range(1, block.size):
+            left = layout_positions[block.b + offset - 1]
+            right = layout_positions[block.b + offset]
+            gaps[block.a + offset] = layout[left + 1 : right]
+    return (
+        "".join(gap + plain[position] for gap, position in zip(gaps, plain_positions, strict=True))
+        + plain[plain_positions[-1] + 1 :]
+    )
+
+
+def _extract_page_text(page: PageObject, plain: str, document_words: set[str]) -> str:
+    if not plain.strip():
+        return ""
     try:
         layout = page.extract_text(extraction_mode="layout", layout_mode_strip_rotated=False) or ""
     except Exception:
-        # The layout pass is corroboration only; the full plain text remains
-        # the authoritative fallback, including any rotated content.
         return plain
-    return _repair_broken_tokens(plain, layout, document_words)
+    # Plain extraction follows text drawing operations, which can split words
+    # and dates into arbitrary fragments. Layout uses their actual positions.
+    # Only prefer it when it retains every non-whitespace character exactly;
+    # otherwise keep the complete plain extraction, including rotated text.
+    plain_characters = Counter(character for character in plain if not character.isspace())
+    layout_characters = Counter(character for character in layout if not character.isspace())
+    if plain_characters == layout_characters:
+        return _repair_broken_tokens(layout, layout, document_words)
+    return _repair_broken_tokens(_reflow_preserving_characters(plain, layout), layout, document_words)
 
 
 def parse_pdf_document(value: PDFDocumentInput) -> tuple[PDFPageInput, ...]:

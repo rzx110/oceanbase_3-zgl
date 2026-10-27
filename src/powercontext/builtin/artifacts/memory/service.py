@@ -1664,8 +1664,7 @@ class MemoryService:
                 and sources[0].source_type == "pdf-page"
                 and not artifacts
                 and (content := _source_gate_content(candidate_sources[0], self._source_resolver)) is not None
-                and normalize_text(content, max_bytes=MAX_SOURCE_OBSERVATION_BYTES)
-                == normalize_text(candidate.text, max_bytes=MAX_SOURCE_OBSERVATION_BYTES)
+                and content.strip() == candidate.text.strip()
             )
             return self._entry_material(
                 kind=candidate.kind,
@@ -1736,7 +1735,7 @@ class MemoryService:
     ) -> _EntryMaterial:
         normalized_kind = normalize_kind(kind)
         max_text_bytes = MAX_SOURCE_OBSERVATION_BYTES if allow_pdf_page else 8192
-        normalized_text = normalize_text(text, max_bytes=max_text_bytes)
+        normalized_text = normalize_text(text, max_bytes=max_text_bytes, preserve_unicode=allow_pdf_page)
         canonical_sources = _canonical_source_refs(sources)
         canonical_artifacts = _canonical_artifact_refs(artifacts)
         source_refs = tuple(source.model_dump(mode="json") for source in canonical_sources)
