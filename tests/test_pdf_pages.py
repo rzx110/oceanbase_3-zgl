@@ -16,14 +16,24 @@
 
 from __future__ import annotations
 
+import base64
 import hashlib
 import io
 import re
+import zlib
 from pathlib import Path
 
 import pytest
-from pypdf import PdfWriter
-from pypdf.generic import DecodedStreamObject, DictionaryObject, NameObject
+from pypdf import PageObject, PdfReader, PdfWriter
+from pypdf.generic import (
+    ArrayObject,
+    DecodedStreamObject,
+    DictionaryObject,
+    EncodedStreamObject,
+    NameObject,
+    NullObject,
+    NumberObject,
+)
 
 from powercontext.builtin.artifacts.memory import MemoryEntryInput
 from powercontext.builtin.artifacts.memory.errors import InvalidMemoryCandidateError
@@ -127,7 +137,7 @@ def test_split_numbers_are_joined_only_when_the_same_page_confirms_them(monkeypa
     plain = "Statement of Incom\n \ne. Year 201\n5, prior year 201\n5. Note 1\n1\n. Table cells 20\n14."
     layout = "Statement of Income. Year 2015, prior year 201 5. Note 11. Table cells 20 14."
 
-    class Page:
+    class Page(PageObject):
         def extract_text(self, **kwargs: object) -> str:
             return layout if kwargs.get("extraction_mode") == "layout" else plain
 
@@ -145,11 +155,12 @@ def test_split_numbers_are_joined_only_when_the_same_page_confirms_them(monkeypa
     )
 
 
-def test_split_heading_letters_use_layout_and_document_context(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Handle the separate last glyphs observed in real report headings."""
+def test_page_text_does_not_guess_words_from_other_occurrences(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A complete word elsewhere cannot justify rewriting ambiguous source text."""
 
-    class Page:
+    class Page(PageObject):
         def __init__(self, plain: str, layout: str) -> None:
+            super().__init__()
             self.plain, self.layout = plain, layout
 
         def extract_text(self, **kwargs: object) -> str:
@@ -168,8 +179,8 @@ def test_split_heading_letters_use_layout_and_document_context(monkeypatch: pyte
 
     monkeypatch.setattr(pdf_pages, "PdfReader", Reader)
     pages = parse_pdf_document(PDFDocumentInput(document_id="issuer", content=_pdf("valid")))
-    assert pages[0].text == "Statement of Income. Net income 400."
-    assert pages[1].text == "Balance Sheet."
+    assert pages[0].text == "Statement of Incom e. Net income 400."
+    assert pages[1].text == "Balance Shee t."
     assert pages[2].text == "Notes about the balance sheet."
 
 
@@ -455,8 +466,9 @@ async def test_pdf_citation_preserves_non_normalized_document_id(tmp_path: Path)
 
 
 def test_layout_reassembles_arbitrary_fragments_without_losing_rotated_text(monkeypatch: pytest.MonkeyPatch) -> None:
-    class Page:
+    class Page(PageObject):
         def __init__(self, plain: str, layout: str) -> None:
+            super().__init__()
             self.plain, self.layout = plain, layout
 
         def extract_text(self, **kwargs: object) -> str:
@@ -482,3 +494,240 @@ def test_layout_reassembles_arbitrary_fragments_without_losing_rotated_text(monk
     assert pages[2].text == "Complete figures 12.50."
     assert pages[3].text == "Forms filed under Form S."
     assert pages[4].text == "September 30 2021. Rotated label 7."
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Form s is filed. Other forms follow.",
+        "Plan s applies. Both plans remain.",
+        "Part s is optional. Other parts remain.",
+        "Rate s is variable. Other rates change.",
+    ],
+)
+def test_literal_pdf_labels_are_not_changed_into_words(text: str) -> None:
+    page = parse_pdf_document(PDFDocumentInput(document_id="labels", content=_pdf(text)))[0]
+    assert page.text.strip() == text
+
+
+@pytest.mark.parametrize("damage", [NumberObject(99), DictionaryObject(), ArrayObject([NumberObject(99)])])
+def test_damage_on_later_page_rejects_the_complete_document(damage) -> None:
+    writer = PdfWriter(clone_from=io.BytesIO(_pdf("First valid page", "Second page")))
+    writer.pages[1][NameObject("/Contents")] = damage
+    buffer = io.BytesIO()
+    writer.write(buffer)
+    raw = buffer.getvalue()
+    assert "First valid page" in PdfReader(io.BytesIO(raw)).pages[0].extract_text()
+    with pytest.raises(ValueError):
+        parse_pdf_document(PDFDocumentInput(document_id="late-damage", content=raw))
+
+
+async def test_old_citation_remains_exact_after_new_revision_and_restart(tmp_path: Path) -> None:
+    old_raw = _pdf("Original reserve 12.50.", "", title="Old")
+    new_raw = _pdf("Updated reserve 13.75.", "", title="New")
+    registry = SourceDefinitionRegistry((PDF_PAGE_SOURCE_DEFINITION,))
+    observations = []
+    for raw in (old_raw, new_raw):
+        revision = []
+        for page in parse_pdf_document(PDFDocumentInput(document_id="REVISED_2024", content=raw)):
+            revision.append(project_source_for_transport(registry, await registry.resolve(page)))
+        observations.append(tuple(revision))
+    config = BuiltinConfig(database=SQLiteConfig(url=f"sqlite+aiosqlite:///{tmp_path / 'revisions.db'}"))
+    async with open_builtin_runtime(config, candidate_pipeline=_PagePipeline()) as runtime:
+        assert runtime.scopes is not None
+        scope = await runtime.scopes.create(ScopeDraft(title="Revisions", summary="PDF", idempotency_key="revisions"))
+        await runtime.ingestion.register(manifest_for_definition(PDF_PAGE_SOURCE_DEFINITION))
+        for observation in observations[0]:
+            await runtime.ingestion.submit(SubmitSourceObservation(scope_id=scope.scope_id, observation=observation))
+        memory = runtime.memory.for_scope(scope.scope_id)
+        assert (await memory.flush()).processed
+        old_citation = (await search_pdf_pages(memory, "original reserve", limit=1))[0]
+        old_entry = (await memory.get(GetMemoryEntryRequest(citation=old_citation))).entry
+        for observation in observations[1]:
+            await runtime.ingestion.submit(SubmitSourceObservation(scope_id=scope.scope_id, observation=observation))
+        assert (await memory.flush()).processed
+        for observation in observations[0]:
+            await runtime.ingestion.submit(SubmitSourceObservation(scope_id=scope.scope_id, observation=observation))
+        assert not (await memory.flush()).processed
+    async with open_builtin_runtime(config) as runtime:
+        memory = runtime.memory.for_scope(scope.scope_id)
+        assert (await memory.get(GetMemoryEntryRequest(citation=old_citation))).entry == old_entry
+        citations = await search_pdf_pages(memory, "reserve", limit=20)
+        records = [(await memory.get(GetMemoryEntryRequest(citation=citation))).entry for citation in citations]
+        assert len(records) == 4
+        assert {entry.sources[0].source_id for entry in records} == {
+            observation.name for revision in observations for observation in revision
+        }
+    async with open_builtin_contexts(config) as contexts:
+        entries = await (await contexts.get(scope.scope_id)).sources.journal.entries()
+        assert len(entries) == 4
+
+
+def test_separate_pdf_drawings_preserve_the_same_word() -> None:
+    writer = PdfWriter(clone_from=io.BytesIO(_pdf("Font resource")))
+    stream = DecodedStreamObject()
+    stream.set_data(b"BT /F1 12 Tf 1 0 0 1 30 200 Tm (Incom) Tj ET BT /F1 12 Tf 1 0 0 1 62.676 200 Tm (e) Tj ET")
+    writer.pages[0][NameObject("/Contents")] = writer._add_object(stream)
+    buffer = io.BytesIO()
+    writer.write(buffer)
+    page = parse_pdf_document(PDFDocumentInput(document_id="positioned", content=buffer.getvalue()))[0]
+    assert page.text.strip() == "Income"
+
+
+def test_valid_stream_array_and_explicit_null_blank_page_are_accepted() -> None:
+    writer = PdfWriter(clone_from=io.BytesIO(_pdf("Font resource", "")))
+    streams = []
+    for text, y in (("First fragment", 200), ("Second fragment", 180)):
+        stream = DecodedStreamObject()
+        stream.set_data(f"BT /F1 12 Tf 30 {y} Td ({text}) Tj ET".encode())
+        streams.append(writer._add_object(stream))
+    writer.pages[0][NameObject("/Contents")] = ArrayObject(streams)
+    writer.pages[1][NameObject("/Contents")] = NullObject()
+    buffer = io.BytesIO()
+    writer.write(buffer)
+    pages = parse_pdf_document(PDFDocumentInput(document_id="stream-array", content=buffer.getvalue()))
+    assert len(pages) == 2
+    assert re.findall(r"[a-z]+", pages[0].text.lower()) == ["first", "fragment", "second", "fragment"]
+    assert pages[1].text == ""
+
+
+@pytest.mark.parametrize(
+    "payload", [b"not-zlib", zlib.compress(b"BT (partial) Tj ET")[:-2], zlib.compress(b"BT (bad) Tj ET")[:-1] + b"!"]
+)
+@pytest.mark.parametrize("wrapped", [False, True])
+def test_corrupt_compressed_later_page_is_not_silently_blank(payload: bytes, wrapped: bool) -> None:
+    writer = PdfWriter(clone_from=io.BytesIO(_pdf("First valid page", "Second page")))
+    stream = EncodedStreamObject()
+    stream._data = base64.a85encode(payload, adobe=True) if wrapped else payload
+    stream[NameObject("/Filter")] = (
+        ArrayObject([NameObject("/ASCII85Decode"), NameObject("/FlateDecode")])
+        if wrapped
+        else NameObject("/FlateDecode")
+    )
+    writer.pages[1][NameObject("/Contents")] = writer._add_object(stream)
+    buffer = io.BytesIO()
+    writer.write(buffer)
+    with pytest.raises(ValueError):
+        parse_pdf_document(PDFDocumentInput(document_id="corrupt-compression", content=buffer.getvalue()))
+
+
+@pytest.mark.parametrize("content", [b"", b"BT /F1 12 Tf 30 200 Td (Valid compressed text) Tj ET"])
+@pytest.mark.parametrize("wrapped", [False, True])
+@pytest.mark.parametrize("encrypted", [False, True])
+def test_complete_compressed_streams_include_valid_blank_pages(content: bytes, wrapped: bool, encrypted: bool) -> None:
+    writer = PdfWriter(clone_from=io.BytesIO(_pdf("Font resource")))
+    stream = EncodedStreamObject()
+    compressed = zlib.compress(content)
+    stream._data = base64.a85encode(compressed, adobe=True) if wrapped else compressed
+    stream[NameObject("/Filter")] = (
+        ArrayObject([NameObject("/ASCII85Decode"), NameObject("/FlateDecode")])
+        if wrapped
+        else NameObject("/FlateDecode")
+    )
+    writer.pages[0][NameObject("/Contents")] = writer._add_object(stream)
+    if encrypted:
+        writer.encrypt(user_password="", owner_password="owner")  # noqa: S106
+    buffer = io.BytesIO()
+    writer.write(buffer)
+    page = parse_pdf_document(PDFDocumentInput(document_id="valid-compression", content=buffer.getvalue()))[0]
+    assert page.text.strip() == ("Valid compressed text" if content else "")
+
+
+@pytest.mark.parametrize("corrupt", [False, True])
+def test_compressed_form_xobject_is_validated(corrupt: bool) -> None:
+    writer = PdfWriter(clone_from=io.BytesIO(_pdf("Font resource")))
+    page = writer.pages[0]
+    form = EncodedStreamObject()
+    form._data = b"bad-compression" if corrupt else zlib.compress(b"BT /F1 12 Tf 30 200 Td (Text in nested form) Tj ET")
+    form[NameObject("/Filter")] = NameObject("/FlateDecode")
+    form[NameObject("/Type")] = NameObject("/XObject")
+    form[NameObject("/Subtype")] = NameObject("/Form")
+    form[NameObject("/BBox")] = ArrayObject([NumberObject(value) for value in (0, 0, 400, 250)])
+    resources = page["/Resources"]
+    assert isinstance(resources, DictionaryObject)
+    form[NameObject("/Resources")] = DictionaryObject({NameObject("/Font"): resources["/Font"]})
+    resources[NameObject("/XObject")] = DictionaryObject({NameObject("/Fm0"): writer._add_object(form)})
+    content = DecodedStreamObject()
+    content.set_data(b"q /Fm0 Do Q")
+    page[NameObject("/Contents")] = writer._add_object(content)
+    buffer = io.BytesIO()
+    writer.write(buffer)
+    value = PDFDocumentInput(document_id="nested-form", content=buffer.getvalue())
+    if corrupt:
+        with pytest.raises(ValueError):
+            parse_pdf_document(value)
+    else:
+        assert parse_pdf_document(value)[0].text.strip() == "Text in nested form"
+
+
+def test_large_compressed_page_is_complete() -> None:
+    text = "complete original financial disclosure " * 4000
+    writer = PdfWriter(clone_from=io.BytesIO(_pdf("Font resource")))
+    stream = DecodedStreamObject()
+    stream.set_data(f"BT /F1 12 Tf 30 200 Td ({text}) Tj ET".encode())
+    writer.pages[0][NameObject("/Contents")] = writer._add_object(stream.flate_encode())
+    buffer = io.BytesIO()
+    writer.write(buffer)
+    page = parse_pdf_document(PDFDocumentInput(document_id="long-compressed", content=buffer.getvalue()))[0]
+    assert page.text.strip() == text.strip()
+
+
+async def test_wrapped_statement_heading_remains_retrievable(tmp_path: Path) -> None:
+    distractor = "Operating income trend. Operating income analysis. Figures 1 2 3 4 5 6 7 8 9 10 11 12."
+    writer = PdfWriter(clone_from=io.BytesIO(_pdf("Font resource", *([distractor] * 25))))
+    stream = DecodedStreamObject()
+    stream.set_data(
+        b"BT /F1 12 Tf 30 210 Td (Consolidated Statement of Incom) Tj ET "
+        b"BT /F1 12 Tf 30 190 Td (e) Tj ET "
+        b"BT /F1 12 Tf 30 170 Td (Operating profit 42. Figures 1 2 3 4 5 6 7 8 9 10 11 12.) Tj ET"
+    )
+    writer.pages[0][NameObject("/Contents")] = writer._add_object(stream)
+    buffer = io.BytesIO()
+    writer.write(buffer)
+    registry = SourceDefinitionRegistry((PDF_PAGE_SOURCE_DEFINITION,))
+    observations = []
+    for page in parse_pdf_document(PDFDocumentInput(document_id="ACME_2024", content=buffer.getvalue())):
+        observations.append(project_source_for_transport(registry, await registry.resolve(page)))
+    config = BuiltinConfig(database=SQLiteConfig(url=f"sqlite+aiosqlite:///{tmp_path / 'wrapped.db'}"))
+    async with open_builtin_runtime(config, candidate_pipeline=_PagePipeline()) as runtime:
+        assert runtime.scopes is not None
+        scope = await runtime.scopes.create(ScopeDraft(title="Wrapped", summary="PDF", idempotency_key="wrapped"))
+        await runtime.ingestion.register(manifest_for_definition(PDF_PAGE_SOURCE_DEFINITION))
+        for observation in observations:
+            await runtime.ingestion.submit(SubmitSourceObservation(scope_id=scope.scope_id, observation=observation))
+        while (await runtime.memory.for_scope(scope.scope_id).flush()).processed:
+            pass
+    async with open_builtin_runtime(config) as runtime:
+        memory = runtime.memory.for_scope(scope.scope_id)
+        citations = await search_pdf_pages(memory, "What was Acme's operating income in FY2024?", limit=1)
+        assert len(citations) == 1
+        entry = (await memory.get(GetMemoryEntryRequest(citation=citations[0]))).entry
+        assert entry.sources[0].source_id == observations[0].name
+
+
+async def test_split_singular_balance_heading_is_searchable_without_rewriting_text(tmp_path: Path) -> None:
+    target = "Consolidated Balance Shee t. Assets 123. Liabilities 98. Figures 1 2 3 4 5 6 7 8 9 10 11 12."
+    distractor = "Notes about balance sheet assets and liabilities. Assets 30. Liabilities 20. Figures 1 2 3 4 5 6 7 8 9 10 11 12."
+    pages = parse_pdf_document(PDFDocumentInput(document_id="ACME_2024", content=_pdf(target, *([distractor] * 25))))
+    assert pages[0].text.strip() == target
+    registry = SourceDefinitionRegistry((PDF_PAGE_SOURCE_DEFINITION,))
+    observations = []
+    for page in pages:
+        observations.append(project_source_for_transport(registry, await registry.resolve(page)))
+    config = BuiltinConfig(database=SQLiteConfig(url=f"sqlite+aiosqlite:///{tmp_path / 'singular-heading.db'}"))
+    async with open_builtin_runtime(config, candidate_pipeline=_PagePipeline()) as runtime:
+        assert runtime.scopes is not None
+        scope = await runtime.scopes.create(ScopeDraft(title="Heading", summary="PDF", idempotency_key="singular"))
+        await runtime.ingestion.register(manifest_for_definition(PDF_PAGE_SOURCE_DEFINITION))
+        for observation in observations:
+            await runtime.ingestion.submit(SubmitSourceObservation(scope_id=scope.scope_id, observation=observation))
+        while (await runtime.memory.for_scope(scope.scope_id).flush()).processed:
+            pass
+    async with open_builtin_runtime(config) as runtime:
+        memory = runtime.memory.for_scope(scope.scope_id)
+        citations = await search_pdf_pages(
+            memory, "What assets and liabilities did Acme report on its FY2024 balance sheet?", limit=1
+        )
+        assert len(citations) == 1
+        entry = (await memory.get(GetMemoryEntryRequest(citation=citations[0]))).entry
+        assert entry.sources[0].source_id == observations[0].name

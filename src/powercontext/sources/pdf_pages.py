@@ -21,6 +21,7 @@ import io
 import json
 import math
 import re
+import zlib
 from collections import Counter
 from collections.abc import Sequence
 from difflib import SequenceMatcher
@@ -28,7 +29,16 @@ from itertools import pairwise
 from typing import Annotated, Protocol
 
 from pydantic import BaseModel, Field, field_validator
-from pypdf import PageObject, PdfReader
+from pypdf import PageObject, PdfReader, get_configuration
+from pypdf.generic import (
+    ArrayObject,
+    DictionaryObject,
+    EncodedStreamObject,
+    NameObject,
+    NullObject,
+    PdfObject,
+    StreamObject,
+)
 
 from powercontext.builtin.artifacts.memory.models import MemoryCitation, MemoryHit
 from powercontext.builtin.runtime.models import (
@@ -77,60 +87,6 @@ def _validate_document_id(value: str) -> None:
         raise ValueError("PDF document_id must not be blank")  # noqa: TRY003
 
 
-_SPLIT_YEAR = re.compile(r"(?<!\d)((?:19|20)\d?)[ \t]*\n[ \t]*(\d{1,2})(?!\d)")
-_FULL_YEAR = re.compile(r"(?<!\d)(?:19|20)\d{2}(?!\d)")
-_SPLIT_NOTE = re.compile(r"(?i)\b(note|item)([ \t\n]+)(\d{1,2})[ \t]*\n[ \t]*(\d)([ \t\n]*\.)")
-_FULL_NOTE = re.compile(r"(?i)\b(?:note|item)\s+(\d{1,3})\s*\.")
-_SPLIT_WORD = re.compile(r"(?<![a-zA-Z])([a-zA-Z]{3,})[ \t\n]+([b-hj-z])(?![a-zA-Z])")
-_FULL_WORD = re.compile(r"[a-zA-Z]+")
-
-
-def _repair_broken_tokens(plain: str, layout: str, document_words: set[str]) -> str:
-    """Join fragments corroborated by page layout or vocabulary in this PDF."""
-    missing_years = Counter(_FULL_YEAR.findall(layout)) - Counter(_FULL_YEAR.findall(plain))
-
-    def year(match: re.Match[str]) -> str:
-        joined = match.group(1) + match.group(2)
-        if len(joined) != 4 or not missing_years[joined]:
-            return match.group()
-        missing_years[joined] -= 1
-        return joined
-
-    repaired = _SPLIT_YEAR.sub(year, plain)
-    missing_notes = Counter(_FULL_NOTE.findall(layout)) - Counter(_FULL_NOTE.findall(repaired))
-
-    def note(match: re.Match[str]) -> str:
-        joined = match.group(3) + match.group(4)
-        if not missing_notes[joined]:
-            return match.group()
-        missing_notes[joined] -= 1
-        return match.group(1) + match.group(2) + joined + match.group(5)
-
-    repaired = _SPLIT_NOTE.sub(note, repaired)
-    missing_words = Counter(word.lower() for word in _FULL_WORD.findall(layout)) - Counter(
-        word.lower() for word in _FULL_WORD.findall(repaired)
-    )
-
-    def word(match: re.Match[str]) -> str:
-        left, right = match.group(1), match.group(2)
-        joined = left + right
-        if missing_words[joined.lower()]:
-            missing_words[joined.lower()] -= 1
-            return joined
-        # Some PDFs cause even the layout extractor to insert one space
-        # between adjacent glyphs. Only repair that case when this is a known
-        # word elsewhere in the same document and both pieces share a line.
-        same_line = re.search(
-            r"(?<![a-z])" + re.escape(left.lower()) + r"[ \t]+" + re.escape(right.lower()) + r"(?![a-z])",
-            layout.lower(),
-        )
-        if joined.lower() not in document_words or same_line is None:
-            return match.group()
-        return joined
-
-    return _SPLIT_WORD.sub(word, repaired)
-
-
 def _reflow_preserving_characters(plain: str, layout: str) -> str:
     """Transfer layout spacing while retaining text omitted by its layout pass."""
     plain_positions = [index for index, character in enumerate(plain) if not character.isspace()]
@@ -152,7 +108,7 @@ def _reflow_preserving_characters(plain: str, layout: str) -> str:
     )
 
 
-def _extract_page_text(page: PageObject, plain: str, document_words: set[str]) -> str:
+def _extract_page_text(page: PageObject, plain: str) -> str:
     if not plain.strip():
         return ""
     try:
@@ -166,8 +122,105 @@ def _extract_page_text(page: PageObject, plain: str, document_words: set[str]) -
     plain_characters = Counter(character for character in plain if not character.isspace())
     layout_characters = Counter(character for character in layout if not character.isspace())
     if plain_characters == layout_characters:
-        return _repair_broken_tokens(layout, layout, document_words)
-    return _repair_broken_tokens(_reflow_preserving_characters(plain, layout), layout, document_words)
+        return layout
+    return _reflow_preserving_characters(plain, layout)
+
+
+def _validate_flate(data: bytes) -> None:
+    """Require a complete zlib stream instead of pypdf's partial recovery."""
+    decoder = zlib.decompressobj()
+    chunk_size = 64 * 1024
+    maximum = get_configuration().zlib_maximum_output_length
+    emitted = 0
+    for start in range(0, len(data), chunk_size):
+        pending = data[start : start + chunk_size]
+        while pending and not decoder.eof:
+            emitted += len(decoder.decompress(pending, chunk_size))
+            if maximum and emitted > maximum:
+                raise ValueError("PDF content stream exceeds the parser decompression limit")  # noqa: TRY003
+            pending = decoder.unconsumed_tail
+        if decoder.eof:
+            break
+    if not decoder.eof:
+        raise ValueError("PDF content stream has incomplete compressed data")  # noqa: TRY003
+
+
+def _validate_pdf_stream(stream: StreamObject) -> None:
+    filters = stream.get("/Filter")
+    if filters is None:
+        stream.get_data()
+        return
+    filters = filters.get_object()
+    names = tuple(filters) if isinstance(filters, ArrayObject) else (filters,)
+    parameters = stream.get("/DecodeParms")
+    if parameters is None or isinstance(parameters.get_object(), NullObject):
+        params = (None,) * len(names)
+    else:
+        parameters = parameters.get_object()
+        params = tuple(parameters) if isinstance(parameters, ArrayObject) else (parameters,)
+    if len(names) != len(params):
+        raise ValueError("PDF stream filters and parameters must have the same length")  # noqa: TRY003
+    data = stream._data
+    for name, parameter in zip(names, params, strict=True):
+        name = name.get_object()
+        if name in ("/FlateDecode", "/Fl"):
+            _validate_flate(data)
+        part = EncodedStreamObject()
+        part._data = data
+        part[NameObject("/Filter")] = name
+        if parameter is not None:
+            part[NameObject("/DecodeParms")] = parameter.get_object()
+        data = part.get_data()
+    stream.get_data()
+
+
+def _optional_pdf_dictionary(value: PdfObject | None) -> DictionaryObject | None:
+    if value is None:
+        return None
+    resolved = value.get_object()
+    if isinstance(resolved, NullObject):
+        return None
+    if not isinstance(resolved, DictionaryObject):
+        raise TypeError("PDF resources must resolve to dictionaries")  # noqa: TRY003
+    return resolved
+
+
+def _validate_form_streams(page: PageObject, validated: set[int]) -> None:
+    pending = [page.get_inherited("/Resources")]
+    while pending:
+        resources = _optional_pdf_dictionary(pending.pop())
+        if resources is None:
+            continue
+        xobjects = _optional_pdf_dictionary(resources.get("/XObject"))
+        if xobjects is None:
+            continue
+        for value in xobjects.values():
+            obj = _optional_pdf_dictionary(value)
+            if obj is None:
+                continue
+            subtype = obj.get("/Subtype")
+            if subtype is None or subtype.get_object() != "/Form" or id(obj) in validated:
+                continue
+            if not isinstance(obj, StreamObject):
+                raise TypeError("PDF form XObjects must be streams")  # noqa: TRY003
+            validated.add(id(obj))
+            _validate_pdf_stream(obj)
+            pending.append(obj.get("/Resources"))
+
+
+def _validate_page_contents(page: PageObject) -> None:
+    contents = page.get("/Contents")
+    if contents is None:
+        return
+    contents = contents.get_object()
+    if isinstance(contents, NullObject):
+        return
+    streams = contents if isinstance(contents, ArrayObject) else (contents,)
+    for value in streams:
+        stream = value.get_object()
+        if not isinstance(stream, StreamObject):
+            raise TypeError("PDF page contents must be a stream or an array of streams")  # noqa: TRY003
+        _validate_pdf_stream(stream)
 
 
 def parse_pdf_document(value: PDFDocumentInput) -> tuple[PDFPageInput, ...]:
@@ -180,14 +233,17 @@ def parse_pdf_document(value: PDFDocumentInput) -> tuple[PDFPageInput, ...]:
         if reader.is_encrypted and not reader.decrypt(""):
             raise ValueError("PDF cannot be opened without a user password")  # noqa: TRY003, TRY301
         page_objects = tuple(reader.pages)
+        validated_forms: set[int] = set()
+        for page in page_objects:
+            _validate_page_contents(page)
+            _validate_form_streams(page, validated_forms)
         plain_pages = tuple(page.extract_text() or "" for page in page_objects)
-        document_words = {word.lower() for plain in plain_pages for word in _FULL_WORD.findall(plain)}
         return tuple(
             PDFPageInput(
                 document_id=value.document_id,
                 document_sha256=digest,
                 page_number=number,
-                text=_extract_page_text(page, plain, document_words),
+                text=_extract_page_text(page, plain),
             )
             for number, (page, plain) in enumerate(zip(page_objects, plain_pages, strict=True), start=1)
         )
@@ -364,6 +420,14 @@ def _heading_score(text: str, intents: frozenset[str]) -> float:
     # Trailing page numbers identify most table-of-contents / exhibit references.
     headings = [line for line in lines if not re.search(r"\d\s*$", line)]
     headings.extend(f"{left} {right}" for left, right in pairwise(lines) if not re.search(r"\d\s*$", right))
+    # Normalize heading vocabulary only in this derived ranking view. Include
+    # singular forms and wrapped lines without rewriting captured evidence.
+    terms = {term for intent in intents for term in _SECTION_HINTS[intent][0].split()}
+    terms |= {term[:-3] + "y" if term.endswith("ies") else term[:-1] for term in terms if term.endswith("s")}
+    for term in sorted(terms):
+        if len(term) > 3:
+            pattern = re.compile(r"\b" + re.escape(term[:-1]) + r"\s+" + re.escape(term[-1]) + r"\b")
+            headings = [pattern.sub(term, heading) for heading in headings]
     # A financial-statement index can repeat every title without containing the
     # corresponding table. Require actual non-year figures for table headings.
     figures = sum(1 for token in _terms(text) if token.isdigit() and not re.fullmatch(r"(?:19|20)\d{2}", token))
