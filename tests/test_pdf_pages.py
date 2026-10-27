@@ -672,6 +672,82 @@ def test_large_compressed_page_is_complete() -> None:
     assert page.text.strip() == text.strip()
 
 
+@pytest.mark.parametrize("compressed", [False, True])
+@pytest.mark.parametrize(
+    ("payload", "valid"),
+    [
+        (b"BT /F1 12 Tf 30 200 Td (Complete nested disclosure) Tj ET", True),
+        (b"BT /F1 12 Tf 30 200 Td (Unterminated nested disclosure", False),
+        (b"q /Missing Do Q", False),
+    ],
+)
+def test_nested_content_failure_rejects_all_pages(payload: bytes, valid: bool, compressed: bool) -> None:
+    writer = PdfWriter(clone_from=io.BytesIO(_pdf("First complete page", "Second complete page")))
+    page = writer.pages[1]
+    form = DecodedStreamObject()
+    form.set_data(payload)
+    if compressed:
+        form = form.flate_encode()
+    form[NameObject("/Type")] = NameObject("/XObject")
+    form[NameObject("/Subtype")] = NameObject("/Form")
+    form[NameObject("/BBox")] = ArrayObject([NumberObject(value) for value in (0, 0, 400, 250)])
+    resources = page["/Resources"]
+    assert isinstance(resources, DictionaryObject)
+    form[NameObject("/Resources")] = DictionaryObject({NameObject("/Font"): resources["/Font"]})
+    resources[NameObject("/XObject")] = DictionaryObject({NameObject("/Fm0"): writer._add_object(form)})
+    content = DecodedStreamObject()
+    content.set_data(b"BT /F1 12 Tf 30 200 Td (Second complete page) Tj ET q /Fm0 Do Q")
+    page[NameObject("/Contents")] = writer._add_object(content)
+    buffer = io.BytesIO()
+    writer.write(buffer)
+    value = PDFDocumentInput(document_id="nested-disclosure", content=buffer.getvalue())
+    if valid:
+        pages = parse_pdf_document(value)
+        assert len(pages) == 2 and "Complete nested disclosure" in pages[1].text
+    else:
+        with pytest.raises(ValueError):
+            parse_pdf_document(value)
+
+
+async def test_business_and_financial_sections_survive_repeated_issuer_and_years(tmp_path: Path) -> None:
+    statements = (
+        "Note 5 - Acquisitions and Divestitures. The company purchased a packaging manufacturer.",
+        "Summary of Business Segment Data. Consumer products 50. Enterprise services 30. Total revenues 80.",
+        "Risks Related to Our Contracts. Public agencies purchase a significant portion of our services.",
+        "Consolidated Statements of Operations. Revenue 80. Cost 60. Tax expense 4. "
+        "Figures 1 2 3 4 5 6 7 8 9 10 11 12.",
+    )
+    distractor = (
+        "Acme 2024 2023 2022. Primary customer categories and effective tax rate comparisons. "
+        "Major acquisitions and revenue changes are discussed elsewhere. "
+    )
+    pages = parse_pdf_document(
+        PDFDocumentInput(document_id="ACME_2024_10K", content=_pdf(*statements, *([distractor] * 30)))
+    )
+    registry = SourceDefinitionRegistry((PDF_PAGE_SOURCE_DEFINITION,))
+    observations = [project_source_for_transport(registry, await registry.resolve(page)) for page in pages]
+    config = BuiltinConfig(database=SQLiteConfig(url=f"sqlite+aiosqlite:///{tmp_path / 'business.db'}"))
+    async with open_builtin_runtime(config, candidate_pipeline=_PagePipeline()) as runtime:
+        assert runtime.scopes is not None
+        scope = await runtime.scopes.create(ScopeDraft(title="Acme", summary="Report", idempotency_key="acme"))
+        await runtime.ingestion.register(manifest_for_definition(PDF_PAGE_SOURCE_DEFINITION))
+        for observation in observations:
+            await runtime.ingestion.submit(SubmitSourceObservation(scope_id=scope.scope_id, observation=observation))
+        while (await runtime.memory.for_scope(scope.scope_id).flush()).processed:
+            pass
+    async with open_builtin_runtime(config) as runtime:
+        memory = runtime.memory.for_scope(scope.scope_id)
+        for question, expected in (
+            ("What major acquisitions did Acme complete during FY2024 and FY2023?", 0),
+            ("Which product categories represent Acme's revenue in FY2024?", 1),
+            ("Who are Acme's primary customers during FY2024?", 2),
+            ("How did Acme's effective tax rate compare between FY2024 and FY2023?", 3),
+        ):
+            citations = await search_pdf_pages(memory, question, limit=20)
+            entries = [(await memory.get(GetMemoryEntryRequest(citation=citation))).entry for citation in citations]
+            assert observations[expected].name in {ref.source_id for entry in entries for ref in entry.sources}
+
+
 async def test_wrapped_statement_heading_remains_retrievable(tmp_path: Path) -> None:
     distractor = "Operating income trend. Operating income analysis. Figures 1 2 3 4 5 6 7 8 9 10 11 12."
     writer = PdfWriter(clone_from=io.BytesIO(_pdf("Font resource", *([distractor] * 25))))

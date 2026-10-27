@@ -32,6 +32,7 @@ from pydantic import BaseModel, Field, field_validator
 from pypdf import PageObject, PdfReader, get_configuration
 from pypdf.generic import (
     ArrayObject,
+    ContentStream,
     DictionaryObject,
     EncodedStreamObject,
     NameObject,
@@ -185,12 +186,27 @@ def _optional_pdf_dictionary(value: PdfObject | None) -> DictionaryObject | None
     return resolved
 
 
-def _validate_form_streams(page: PageObject, validated: set[int]) -> None:
+def _validate_content_operations(contents: PdfObject, page: PageObject, resources: DictionaryObject | None) -> None:
+    # pypdf catches exceptions raised while drawing a Form and returns partial
+    # text. Parse its operations and resolve drawing targets before extraction.
+    for operands, operator in ContentStream(contents, page.pdf).operations:
+        if operator != b"Do":
+            continue
+        xobjects = None if resources is None else _optional_pdf_dictionary(resources.get("/XObject"))
+        if len(operands) != 1 or xobjects is None or operands[0] not in xobjects:
+            raise ValueError("PDF content references an unavailable XObject")  # noqa: TRY003
+        if not isinstance(xobjects[operands[0]].get_object(), StreamObject):
+            raise TypeError("PDF XObjects must resolve to streams")  # noqa: TRY003
+
+
+def _validate_form_streams(page: PageObject, validated: set[tuple[int, int]]) -> None:
     pending = [page.get_inherited("/Resources")]
+    visited_resources: set[int] = set()
     while pending:
         resources = _optional_pdf_dictionary(pending.pop())
-        if resources is None:
+        if resources is None or id(resources) in visited_resources:
             continue
+        visited_resources.add(id(resources))
         xobjects = _optional_pdf_dictionary(resources.get("/XObject"))
         if xobjects is None:
             continue
@@ -199,13 +215,20 @@ def _validate_form_streams(page: PageObject, validated: set[int]) -> None:
             if obj is None:
                 continue
             subtype = obj.get("/Subtype")
-            if subtype is None or subtype.get_object() != "/Form" or id(obj) in validated:
+            if subtype is None or subtype.get_object() != "/Form":
                 continue
             if not isinstance(obj, StreamObject):
                 raise TypeError("PDF form XObjects must be streams")  # noqa: TRY003
-            validated.add(id(obj))
+            form_resources = _optional_pdf_dictionary(obj.get("/Resources"))
+            if form_resources is None:
+                form_resources = resources
+            key = (id(obj), id(form_resources))
+            if key in validated:
+                continue
+            validated.add(key)
             _validate_pdf_stream(obj)
-            pending.append(obj.get("/Resources"))
+            _validate_content_operations(obj, page, form_resources)
+            pending.append(form_resources)
 
 
 def _validate_page_contents(page: PageObject) -> None:
@@ -221,6 +244,7 @@ def _validate_page_contents(page: PageObject) -> None:
         if not isinstance(stream, StreamObject):
             raise TypeError("PDF page contents must be a stream or an array of streams")  # noqa: TRY003
         _validate_pdf_stream(stream)
+    _validate_content_operations(contents, page, _optional_pdf_dictionary(page.get_inherited("/Resources")))
 
 
 def parse_pdf_document(value: PDFDocumentInput) -> tuple[PDFPageInput, ...]:
@@ -233,7 +257,7 @@ def parse_pdf_document(value: PDFDocumentInput) -> tuple[PDFPageInput, ...]:
         if reader.is_encrypted and not reader.decrypt(""):
             raise ValueError("PDF cannot be opened without a user password")  # noqa: TRY003, TRY301
         page_objects = tuple(reader.pages)
-        validated_forms: set[int] = set()
+        validated_forms: set[tuple[int, int]] = set()
         for page in page_objects:
             _validate_page_contents(page)
             _validate_form_streams(page, validated_forms)
@@ -323,7 +347,8 @@ _STOPWORDS = frozenset(
     "investment analyst only use using used details shown within relying provided based "
     "according assuming reported report reports directly outlined explicitly quantity "
     "materially important ongoing primarily respond stated state following whether "
-    "fy fiscal year annual report form usd million millions billion billions".split()
+    "fy fiscal year annual report form usd million millions billion billions "
+    "there more most major primary mainly done compare compared between among".split()
 )
 
 # General financial vocabulary, independent of any report, question or answer.
@@ -349,6 +374,18 @@ _FINANCIAL_ALIASES = (
     (frozenset({"liquidity", "current", "quick", "working"}), ("current", "assets", "liabilities", "balance")),
     (frozenset({"turnover", "inventory", "inventories"}), ("inventory", "inventories", "cost", "sales", "balance")),
     (frozenset({"return", "roa", "roe"}), ("net", "income", "assets", "equity", "balance")),
+    (
+        frozenset({"acquisition", "acquisitions", "mergers"}),
+        ("acquisition", "acquisitions", "combinations", "purchases"),
+    ),
+    (
+        frozenset({"category", "categories", "segments", "divisions"}),
+        ("segments", "divisions", "business", "products", "services", "revenue"),
+    ),
+    (
+        frozenset({"customer", "customers", "clients"}),
+        ("customers", "clients", "contracts", "concentration", "markets", "business"),
+    ),
 )
 
 
@@ -395,13 +432,29 @@ _SECTION_HINTS = {
         "geographic segments divisions",
         re.compile(r"^(?:our|reportable|geographic|business) (?:segments|divisions)"),
     ),
+    "acquisitions": (
+        "acquisitions business combinations",
+        re.compile(r"^(?:(?:note )?\d+[a-z]?\s*[-.:]?\s*)?(?:acquisitions?|business combinations?)"),
+    ),
+    "segments": (
+        "business segments divisions revenue",
+        re.compile(
+            r"^(?:summary of )?(?:(?:reportable|operating|business) )?segment(?:s| information| data| reporting)"
+        ),
+    ),
+    "business": (
+        "business customers contracts",
+        re.compile(
+            r"^(?:(?:item )?1\.? business|business overview|customers?|risks related to our (?:business|contracts))"
+        ),
+    ),
 }
 
 
 def _document_intents(question: str) -> frozenset[str]:
     terms = set(_terms(question))
     intents = set()
-    if terms & {"ebitda", "income", "earnings", "profit", "margin"}:
+    if terms & {"ebitda", "income", "earnings", "profit", "margin", "tax", "taxes", "taxation"}:
         intents.add("income")
     if terms & {"ebitda", "cash", "capex", "depreciation", "amortization"}:
         intents.add("cash")
@@ -411,6 +464,12 @@ def _document_intents(question: str) -> frozenset[str]:
         intents.add("legal")
     if terms & {"geographies", "geographic", "geography", "countries", "regions"}:
         intents.add("geography")
+    if terms & {"acquisition", "acquisitions", "merger", "mergers"}:
+        intents.add("acquisitions")
+    if terms & {"category", "categories", "segment", "segments", "division", "divisions"}:
+        intents.add("segments")
+    if terms & {"customer", "customers", "client", "clients", "products", "services"}:
+        intents.add("business")
     return frozenset(intents)
 
 
@@ -477,12 +536,20 @@ def _rank_pages(
     average_length = sum(map(len, tokens)) / max(1, len(tokens))
     phrases = tuple(zip((_stem(term) for term in salient[:-1]), (_stem(term) for term in salient[1:]), strict=True))
     query_words = set(salient)
+    # Issuer names identify the report, rather than its relevant page. Repeated
+    # names and years in footnotes must not outweigh the actual question topic.
+    title_terms = [set(_terms(hit.text.partition("\n")[0])) for hit in hits]
+    issuer_terms = set.intersection(*title_terms) if title_terms else set()
+    issuer_stems = {_stem(term) for term in issuer_terms if term.isalpha()}
+    topic_weights = {
+        term: weight * (0.1 if term.isdigit() or term in issuer_stems else 1.0) for term, weight in weights.items()
+    }
 
     def score(index: int) -> float:
         hit, counter = hits[index], counters[index]
         length = len(tokens[index])
         total = 0.0
-        for term, weight in weights.items():
+        for term, weight in topic_weights.items():
             count = counter.get(term, 0)
             if count:
                 rarity = math.log1p((len(hits) - frequencies[term] + 0.5) / (frequencies[term] + 0.5))
