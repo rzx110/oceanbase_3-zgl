@@ -1,0 +1,24 @@
+{
+  "command": [
+    "${PYTHON}",
+    "-m",
+    "pytest",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "demo/tests/test_regression.py"
+  ],
+  "working_directory": "minimax/",
+  "snapshot": "demo/after",
+  "code_sha256": {
+    "demo/after/taskboard/__init__.py": "aca5437685a9e60a5beceaed5be17c7b90c8f68dc08c7dfaf1deb4f837f3ce32",
+    "demo/after/taskboard/__main__.py": "ea3f3ce60b6f3a3d0bc3c9b41870fa8223d3c39461a18258b654e2d7739f7f86",
+    "demo/after/taskboard/service.py": "995d72383415c8192fc8d956a9f559b2318f9970eca1d7f0c5912c4c01ed0cda"
+  },
+  "test_file": "demo/tests/test_regression.py",
+  "test_sha256": "febf3855ce697cf85673f2b01100e2bef5429892384a5e19829bf58e609415ad",
+  "exit_code": 0,
+  "stdout": "....                                                                     [100%]\n4 passed in 0.02s\n",
+  "stderr": "",
+  "executed_at_utc": "2026-10-27T23:27:24.013990+00:00"
+}

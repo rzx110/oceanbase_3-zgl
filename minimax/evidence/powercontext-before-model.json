@@ -1,0 +1,39 @@
+{
+  "saved_source_id": "sdd-state:2eca92f42f57afa8d9aa02fa81c1f047355551c0200e498b9986c7453a99d13b",
+  "saved_sequence": 1,
+  "readback": {
+    "state": {
+      "completed": [
+        "Imported specifications, code and tests into seekdb",
+        "Retrieved required sources",
+        "Ran unchanged feature and regression tests against before code"
+      ],
+      "next_action": "Use MiniMax to implement list_tasks status filtering, then run the unchanged tests.",
+      "status": "baseline-tested",
+      "todo": [
+        "MiniMax actual code modification",
+        "Run after feature/regression tests",
+        "Verify resumed task"
+      ],
+      "validation": {
+        "before_feature_exit_code": 1,
+        "before_feature_summary": "15 failed in 0.16s",
+        "before_regression_exit_code": 0,
+        "before_regression_summary": "4 passed in 0.02s"
+      },
+      "verified_source_hashes": {
+        "demo/before/taskboard/__main__.py": "ea3f3ce60b6f3a3d0bc3c9b41870fa8223d3c39461a18258b654e2d7739f7f86",
+        "demo/before/taskboard/service.py": "ec96fe5867c14a2e6b2355a5647a2a7b5a8bff87bee9953531ac3a08cffb74fe",
+        "demo/specs/export_format.md": "8040941290bb3974aa40500c49ce4c681cba81d059d9f2aa9bb1da4208503d8e",
+        "demo/specs/task_status.md": "dfc569af30dfee6cc10d9096fe1a8150a621b00a0065a5abee795829c46ce9a5",
+        "demo/tests/test_regression.py": "febf3855ce697cf85673f2b01100e2bef5429892384a5e19829bf58e609415ad",
+        "demo/tests/test_status_filter.py": "a3fdfea06bb88a5b6052343ac5d0bde3c154d9a5363cbc0dc2353c7303e2da7d"
+      }
+    },
+    "source_id": "sdd-state:2eca92f42f57afa8d9aa02fa81c1f047355551c0200e498b9986c7453a99d13b",
+    "source_type": "content",
+    "scope_id": "scp_026211e00w17m67g84xf18z5hk",
+    "sequence": 1,
+    "content_digest": "sha256:e8b50a7cf3b5c9f0603ba7b418a42431020aefc21aa490c699fd070bd07fe5cb"
+  }
+}

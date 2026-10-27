@@ -1,0 +1,24 @@
+{
+  "command": [
+    "${PYTHON}",
+    "-m",
+    "pytest",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "tests/test_context_workflow.py"
+  ],
+  "exit_code": 0,
+  "stdout": "....                                                                     [100%]\n4 passed in 59.24s\n",
+  "stderr": "",
+  "module_sha256": {
+    "src/sdd_context/__init__.py": "4e8653d5c2f6ff5f153b703cb581e018afc13f07cc5694f929d07167d3ee0293",
+    "src/sdd_context/__main__.py": "6d8b7d7846a845059d7a3107143f11131f63c5511d669b44085b15ec5e3d2279",
+    "src/sdd_context/agent.py": "24df4fad6edc7e4881cc34c507b1d4d55fe91f8abcb1c290fa53dd9757473b5c",
+    "src/sdd_context/cli.py": "54a98b159823a53218ba5aea48a896a2fc2440157c79cde326e6d65b2cb130f1",
+    "src/sdd_context/context.py": "b878148380250f66dc72aabc95859abd4b317aa38e316437b240c08dec4e5d84",
+    "src/sdd_context/state.py": "91c9a6e0c8d3eb0b272db77aa9d2ca3a0e971053721868385ac6336494c48527",
+    "src/sdd_context/storage.py": "1cbec88d5e2feca1259d489583016481824a0a7f369a4d55e3b45c3ab7b4134c"
+  },
+  "test_sha256": "33c114d1c57b2f402df9bbd3cfab8421b30f307bf74bab6ac437d691add5cf16"
+}

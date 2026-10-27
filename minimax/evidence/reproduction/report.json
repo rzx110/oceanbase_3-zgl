@@ -1,0 +1,48 @@
+{
+  "verified_at_utc": "2026-10-27T23:28:02.870446+00:00",
+  "result": "passed",
+  "checks": {
+    "empty_initial_task_state": true,
+    "required_context_sources": true,
+    "real_seekdb_query": true,
+    "model_code_matches_record": true,
+    "unchanged_tests_before_and_after": true,
+    "functional_change_and_regressions": true,
+    "PowerContext_process_restart_and_reuse": true
+  },
+  "tests": {
+    "before_feature": {
+      "exit_code": 1,
+      "summary": "15 failed in 0.16s",
+      "test_sha256": "a3fdfea06bb88a5b6052343ac5d0bde3c154d9a5363cbc0dc2353c7303e2da7d"
+    },
+    "before_regression": {
+      "exit_code": 0,
+      "summary": "4 passed in 0.02s",
+      "test_sha256": "febf3855ce697cf85673f2b01100e2bef5429892384a5e19829bf58e609415ad"
+    },
+    "after_feature": {
+      "exit_code": 0,
+      "summary": "15 passed in 0.03s",
+      "test_sha256": "a3fdfea06bb88a5b6052343ac5d0bde3c154d9a5363cbc0dc2353c7303e2da7d"
+    },
+    "after_regression": {
+      "exit_code": 0,
+      "summary": "4 passed in 0.02s",
+      "test_sha256": "febf3855ce697cf85673f2b01100e2bef5429892384a5e19829bf58e609415ad"
+    }
+  },
+  "runtime_versions": {
+    "python": "3.12.3",
+    "powercontext": "1.2.0",
+    "sdk_origin": {
+      "url": "https://github.com/oceanbase/powercontext.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "9db1753434162c0aa7c9f1189a1722e617880a52",
+        "requested_revision": "9db1753434162c0aa7c9f1189a1722e617880a52"
+      }
+    }
+  },
+  "model_session": "https://agent.minimax.cn/mavis?id=457072818422057"
+}

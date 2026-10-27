@@ -1,0 +1,54 @@
+{
+  "saved_source_id": "sdd-state:cfd31191e911c957cc1f342a14c13e9802aa9deda9013d4431b47c9967ccd286",
+  "saved_sequence": 1,
+  "readback": {
+    "state": {
+      "completed": [
+        "seekdb material import and contextual retrieval",
+        "MiniMax actual code modification",
+        "feature and regression tests"
+      ],
+      "next_action": "Feature and regression tests passed. Review the saved patch; do not regenerate an already completed change.",
+      "produced_code": {
+        "demo/after/taskboard/service.py": "995d72383415c8192fc8d956a9f559b2318f9970eca1d7f0c5912c4c01ed0cda"
+      },
+      "status": "verified",
+      "todo": [],
+      "validation": {
+        "after_feature": {
+          "exit_code": 0,
+          "summary": "15 passed in 0.03s",
+          "test_sha256": "a3fdfea06bb88a5b6052343ac5d0bde3c154d9a5363cbc0dc2353c7303e2da7d"
+        },
+        "after_regression": {
+          "exit_code": 0,
+          "summary": "4 passed in 0.02s",
+          "test_sha256": "febf3855ce697cf85673f2b01100e2bef5429892384a5e19829bf58e609415ad"
+        },
+        "before_feature": {
+          "exit_code": 1,
+          "summary": "15 failed in 0.16s",
+          "test_sha256": "a3fdfea06bb88a5b6052343ac5d0bde3c154d9a5363cbc0dc2353c7303e2da7d"
+        },
+        "before_regression": {
+          "exit_code": 0,
+          "summary": "4 passed in 0.02s",
+          "test_sha256": "febf3855ce697cf85673f2b01100e2bef5429892384a5e19829bf58e609415ad"
+        }
+      },
+      "verified_source_hashes": {
+        "demo/before/taskboard/__main__.py": "ea3f3ce60b6f3a3d0bc3c9b41870fa8223d3c39461a18258b654e2d7739f7f86",
+        "demo/before/taskboard/service.py": "ec96fe5867c14a2e6b2355a5647a2a7b5a8bff87bee9953531ac3a08cffb74fe",
+        "demo/specs/export_format.md": "8040941290bb3974aa40500c49ce4c681cba81d059d9f2aa9bb1da4208503d8e",
+        "demo/specs/task_status.md": "dfc569af30dfee6cc10d9096fe1a8150a621b00a0065a5abee795829c46ce9a5",
+        "demo/tests/test_regression.py": "febf3855ce697cf85673f2b01100e2bef5429892384a5e19829bf58e609415ad",
+        "demo/tests/test_status_filter.py": "a3fdfea06bb88a5b6052343ac5d0bde3c154d9a5363cbc0dc2353c7303e2da7d"
+      }
+    },
+    "source_id": "sdd-state:cfd31191e911c957cc1f342a14c13e9802aa9deda9013d4431b47c9967ccd286",
+    "source_type": "content",
+    "scope_id": "scp_082t9w4hsmf458rhcjw2swpbkn",
+    "sequence": 1,
+    "content_digest": "sha256:0c2aaf1d6d6fc9344b30fd1c332721bde8a353de57a4aba63516ab1656c60012"
+  }
+}

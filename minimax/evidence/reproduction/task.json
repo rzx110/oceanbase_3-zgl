@@ -1,0 +1,19 @@
+{
+  "task_id": "TASK-STATUS-001",
+  "project_id": "sdd-review-97f25c1f037841ed983310d3cafbc877",
+  "description": "Implement exact task status filtering in list_tasks. Validate invalid status inputs, preserve default ordering, duplicates and input immutability. Run feature and regression tests.",
+  "query": "task status list_tasks filter invalid ordering immutability",
+  "editable_file": "taskboard/service.py",
+  "expected_sources": [
+    "demo/specs/task_status.md",
+    "demo/before/taskboard/service.py",
+    "demo/tests/test_status_filter.py",
+    "demo/tests/test_regression.py"
+  ],
+  "expected_spec_ids": [
+    "REQ-STATUS-01",
+    "REQ-STATUS-02",
+    "REQ-COMPAT-01",
+    "REQ-COMPAT-02"
+  ]
+}

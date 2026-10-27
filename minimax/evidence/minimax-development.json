@@ -1,0 +1,14 @@
+{
+  "provider": "MiniMax",
+  "method": "Official MiniMax Code web UI",
+  "session_url": "https://agent.minimax.cn/mavis?id=457072818422057",
+  "model_selected_in_ui": "M3.1-Flash default",
+  "request_file": "evidence/minimax-request.json",
+  "response_file": "evidence/minimax-response.txt",
+  "prompt_sha256": "2e630e0973466cac56d8317b391bb76dd8112ef29eb34fbc1fea048f5035b4ed",
+  "edited_file": "taskboard/service.py",
+  "before_sha256": "ec96fe5867c14a2e6b2355a5647a2a7b5a8bff87bee9953531ac3a08cffb74fe",
+  "after_sha256": "995d72383415c8192fc8d956a9f559b2318f9970eca1d7f0c5912c4c01ed0cda",
+  "recorded_at_utc": "2026-10-27T23:27:22.831405+00:00",
+  "note": "Actual public web response; no API response ID or private reasoning is claimed. See browser screenshot."
+}

@@ -1,0 +1,8 @@
+{
+  "project_id": "taskboard-demo",
+  "materials": [
+    {"kind":"spec", "glob":"demo/specs/*.md"},
+    {"kind":"code", "glob":"demo/before/taskboard/*.py"},
+    {"kind":"test", "glob":"demo/tests/test_*.py"}
+  ]
+}

@@ -1,0 +1,195 @@
+Command: ${PYTHON} -m pytest -q -p no:cacheprovider demo/tests/test_status_filter.py
+Snapshot: demo/before
+Exit code: 1
+
+FFFFFFFFFFFFFFF                                                          [100%]
+================================== FAILURES ===================================
+_____________________ test_exact_status_filter[todo-ids0] _____________________
+
+tasks = [Task(task_id='3', title='review', status='done'), Task(task_id='1', title='spec', status='todo'), Task(task_id='4', title='code', status='doing'), Task(task_id='2', title='test', status='todo')]
+status = 'todo', ids = ['1', '2']
+
+    @pytest.mark.parametrize("status,ids", [("todo", ["1", "2"]), ("doing", ["4"]), ("done", ["3"])])
+    def test_exact_status_filter(tasks, status, ids):
+>       assert [task.task_id for task in list_tasks(tasks, status=status)] == ids
+E       AssertionError: assert ['3', '1', '4', '2'] == ['1', '2']
+E         
+E         At index 0 diff: '3' != '1'
+E         Left contains 2 more items, first extra item: '4'
+E         Use -v to get more diff
+
+demo\tests\test_status_filter.py:15: AssertionError
+____________________ test_exact_status_filter[doing-ids1] _____________________
+
+tasks = [Task(task_id='3', title='review', status='done'), Task(task_id='1', title='spec', status='todo'), Task(task_id='4', title='code', status='doing'), Task(task_id='2', title='test', status='todo')]
+status = 'doing', ids = ['4']
+
+    @pytest.mark.parametrize("status,ids", [("todo", ["1", "2"]), ("doing", ["4"]), ("done", ["3"])])
+    def test_exact_status_filter(tasks, status, ids):
+>       assert [task.task_id for task in list_tasks(tasks, status=status)] == ids
+E       AssertionError: assert ['3', '1', '4', '2'] == ['4']
+E         
+E         At index 0 diff: '3' != '4'
+E         Left contains 3 more items, first extra item: '1'
+E         Use -v to get more diff
+
+demo\tests\test_status_filter.py:15: AssertionError
+_____________________ test_exact_status_filter[done-ids2] _____________________
+
+tasks = [Task(task_id='3', title='review', status='done'), Task(task_id='1', title='spec', status='todo'), Task(task_id='4', title='code', status='doing'), Task(task_id='2', title='test', status='todo')]
+status = 'done', ids = ['3']
+
+    @pytest.mark.parametrize("status,ids", [("todo", ["1", "2"]), ("doing", ["4"]), ("done", ["3"])])
+    def test_exact_status_filter(tasks, status, ids):
+>       assert [task.task_id for task in list_tasks(tasks, status=status)] == ids
+E       AssertionError: assert ['3', '1', '4', '2'] == ['3']
+E         
+E         Left contains 3 more items, first extra item: '1'
+E         Use -v to get more diff
+
+demo\tests\test_status_filter.py:15: AssertionError
+__________ test_invalid_status_is_value_error_even_for_empty_input[] __________
+
+status = ''
+
+    @pytest.mark.parametrize("status", ["", "TODO", " todo", "todo ", "to", "cancelled", 0, [], {}])
+    def test_invalid_status_is_value_error_even_for_empty_input(status):
+>       with pytest.raises(ValueError):
+E       Failed: DID NOT RAISE <class 'ValueError'>
+
+demo\tests\test_status_filter.py:20: Failed
+________ test_invalid_status_is_value_error_even_for_empty_input[TODO] ________
+
+status = 'TODO'
+
+    @pytest.mark.parametrize("status", ["", "TODO", " todo", "todo ", "to", "cancelled", 0, [], {}])
+    def test_invalid_status_is_value_error_even_for_empty_input(status):
+>       with pytest.raises(ValueError):
+E       Failed: DID NOT RAISE <class 'ValueError'>
+
+demo\tests\test_status_filter.py:20: Failed
+_______ test_invalid_status_is_value_error_even_for_empty_input[ todo] ________
+
+status = ' todo'
+
+    @pytest.mark.parametrize("status", ["", "TODO", " todo", "todo ", "to", "cancelled", 0, [], {}])
+    def test_invalid_status_is_value_error_even_for_empty_input(status):
+>       with pytest.raises(ValueError):
+E       Failed: DID NOT RAISE <class 'ValueError'>
+
+demo\tests\test_status_filter.py:20: Failed
+_______ test_invalid_status_is_value_error_even_for_empty_input[todo ] ________
+
+status = 'todo '
+
+    @pytest.mark.parametrize("status", ["", "TODO", " todo", "todo ", "to", "cancelled", 0, [], {}])
+    def test_invalid_status_is_value_error_even_for_empty_input(status):
+>       with pytest.raises(ValueError):
+E       Failed: DID NOT RAISE <class 'ValueError'>
+
+demo\tests\test_status_filter.py:20: Failed
+_________ test_invalid_status_is_value_error_even_for_empty_input[to] _________
+
+status = 'to'
+
+    @pytest.mark.parametrize("status", ["", "TODO", " todo", "todo ", "to", "cancelled", 0, [], {}])
+    def test_invalid_status_is_value_error_even_for_empty_input(status):
+>       with pytest.raises(ValueError):
+E       Failed: DID NOT RAISE <class 'ValueError'>
+
+demo\tests\test_status_filter.py:20: Failed
+_____ test_invalid_status_is_value_error_even_for_empty_input[cancelled] ______
+
+status = 'cancelled'
+
+    @pytest.mark.parametrize("status", ["", "TODO", " todo", "todo ", "to", "cancelled", 0, [], {}])
+    def test_invalid_status_is_value_error_even_for_empty_input(status):
+>       with pytest.raises(ValueError):
+E       Failed: DID NOT RAISE <class 'ValueError'>
+
+demo\tests\test_status_filter.py:20: Failed
+_________ test_invalid_status_is_value_error_even_for_empty_input[0] __________
+
+status = 0
+
+    @pytest.mark.parametrize("status", ["", "TODO", " todo", "todo ", "to", "cancelled", 0, [], {}])
+    def test_invalid_status_is_value_error_even_for_empty_input(status):
+>       with pytest.raises(ValueError):
+E       Failed: DID NOT RAISE <class 'ValueError'>
+
+demo\tests\test_status_filter.py:20: Failed
+______ test_invalid_status_is_value_error_even_for_empty_input[status7] _______
+
+status = []
+
+    @pytest.mark.parametrize("status", ["", "TODO", " todo", "todo ", "to", "cancelled", 0, [], {}])
+    def test_invalid_status_is_value_error_even_for_empty_input(status):
+>       with pytest.raises(ValueError):
+E       Failed: DID NOT RAISE <class 'ValueError'>
+
+demo\tests\test_status_filter.py:20: Failed
+______ test_invalid_status_is_value_error_even_for_empty_input[status8] _______
+
+status = {}
+
+    @pytest.mark.parametrize("status", ["", "TODO", " todo", "todo ", "to", "cancelled", 0, [], {}])
+    def test_invalid_status_is_value_error_even_for_empty_input(status):
+>       with pytest.raises(ValueError):
+E       Failed: DID NOT RAISE <class 'ValueError'>
+
+demo\tests\test_status_filter.py:20: Failed
+___________________________ test_no_match_is_empty ____________________________
+
+    def test_no_match_is_empty():
+>       assert list_tasks([Task("1", "spec", "done")], status="todo") == []
+E       AssertionError: assert [Task(task_id...tatus='done')] == []
+E         
+E         Left contains one more item: Task(task_id='1', title='spec', status='done')
+E         Use -v to get more diff
+
+demo\tests\test_status_filter.py:25: AssertionError
+____________ test_filter_keeps_order_duplicates_identity_and_input ____________
+
+tasks = [Task(task_id='3', title='review', status='done'), Task(task_id='1', title='spec', status='todo'), Task(task_id='4', title='code', status='doing'), Task(task_id='2', title='test', status='todo')]
+
+    def test_filter_keeps_order_duplicates_identity_and_input(tasks):
+        original = tasks + [tasks[1]]
+        snapshot = tuple(original)
+        result = list_tasks(original, status="todo")
+>       assert result == [tasks[1], tasks[3], tasks[1]]
+E       AssertionError: assert [Task(task_id...tatus='todo')] == [Task(task_id...tatus='todo')]
+E         
+E         At index 0 diff: Task(task_id='3', title='review', status='done') != Task(task_id='1', title='spec', status='todo')
+E         Left contains 2 more items, first extra item: Task(task_id='2', title='test', status='todo')
+E         Use -v to get more diff
+
+demo\tests\test_status_filter.py:32: AssertionError
+__________________________ test_filter_accepts_tuple __________________________
+
+tasks = [Task(task_id='3', title='review', status='done'), Task(task_id='1', title='spec', status='todo'), Task(task_id='4', title='code', status='doing'), Task(task_id='2', title='test', status='todo')]
+
+    def test_filter_accepts_tuple(tasks):
+>       assert list_tasks(tuple(tasks), status="done") == [tasks[0]]
+E       AssertionError: assert [Task(task_id...tatus='todo')] == [Task(task_id...tatus='done')]
+E         
+E         Left contains 3 more items, first extra item: Task(task_id='1', title='spec', status='todo')
+E         Use -v to get more diff
+
+demo\tests\test_status_filter.py:38: AssertionError
+=========================== short test summary info ===========================
+FAILED demo/tests/test_status_filter.py::test_exact_status_filter[todo-ids0]
+FAILED demo/tests/test_status_filter.py::test_exact_status_filter[doing-ids1]
+FAILED demo/tests/test_status_filter.py::test_exact_status_filter[done-ids2]
+FAILED demo/tests/test_status_filter.py::test_invalid_status_is_value_error_even_for_empty_input[]
+FAILED demo/tests/test_status_filter.py::test_invalid_status_is_value_error_even_for_empty_input[TODO]
+FAILED demo/tests/test_status_filter.py::test_invalid_status_is_value_error_even_for_empty_input[ todo]
+FAILED demo/tests/test_status_filter.py::test_invalid_status_is_value_error_even_for_empty_input[todo ]
+FAILED demo/tests/test_status_filter.py::test_invalid_status_is_value_error_even_for_empty_input[to]
+FAILED demo/tests/test_status_filter.py::test_invalid_status_is_value_error_even_for_empty_input[cancelled]
+FAILED demo/tests/test_status_filter.py::test_invalid_status_is_value_error_even_for_empty_input[0]
+FAILED demo/tests/test_status_filter.py::test_invalid_status_is_value_error_even_for_empty_input[status7]
+FAILED demo/tests/test_status_filter.py::test_invalid_status_is_value_error_even_for_empty_input[status8]
+FAILED demo/tests/test_status_filter.py::test_no_match_is_empty - AssertionEr...
+FAILED demo/tests/test_status_filter.py::test_filter_keeps_order_duplicates_identity_and_input
+FAILED demo/tests/test_status_filter.py::test_filter_accepts_tuple - Assertio...
+15 failed in 0.16s

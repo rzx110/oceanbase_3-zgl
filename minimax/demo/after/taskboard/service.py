@@ -1,0 +1,41 @@
+"""Task-board listing service with exact status filtering."""
+
+from dataclasses import dataclass
+from collections.abc import Sequence
+
+#: Statuses accepted by :func:`list_tasks` when a filter is supplied.
+VALID_STATUSES = ("todo", "doing", "done")
+
+
+@dataclass(frozen=True)
+class Task:
+    task_id: str
+    title: str
+    status: str
+
+
+def list_tasks(tasks: Sequence[Task], *, status: str | None = None) -> list[Task]:
+    """Return tasks in input order, optionally filtered by an exact status match.
+
+    When ``status`` is ``None`` every task is returned in the original input
+    order. When ``status`` is supplied it must be exactly one of ``"todo"``,
+    ``"doing"`` or ``"done"``; any other value raises :class:`ValueError`,
+    including the empty string, a differently-cased value, surrounding
+    whitespace, a substring, or a value of another type. The check runs even
+    for an empty task sequence.
+
+    The returned list is always a new list; the input sequence and its
+    :class:`Task` objects are never mutated, and task order, duplicates and
+    object identity are preserved.
+    """
+    if status is None:
+        return list(tasks)
+
+    if not isinstance(status, str) or status not in VALID_STATUSES:
+        raise ValueError(
+            "status must be one of {valid!r}, got {given!r}".format(
+                valid=VALID_STATUSES, given=status
+            )
+        )
+
+    return [task for task in tasks if task.status == status]

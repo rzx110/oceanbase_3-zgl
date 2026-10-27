@@ -1,0 +1,17 @@
+{
+  "command": [
+    "${PYTHON}",
+    "-m",
+    "sdd_context",
+    "--state-dir",
+    "${MINIMAX_ROOT}\\.local\\final-review\\state",
+    "--task",
+    "${MINIMAX_ROOT}\\.local\\final-review\\task.json",
+    "--output",
+    "${MINIMAX_ROOT}\\.local\\final-review\\context-resumed.json",
+    "resume"
+  ],
+  "exit_code": 0,
+  "stdout": "Saved ${MINIMAX_ROOT}\\.local\\final-review\\context-resumed.json\n",
+  "stderr": ""
+}

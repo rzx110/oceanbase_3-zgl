@@ -1,0 +1,275 @@
+{
+  "schema": "sdd-context/v1",
+  "task_id": "TASK-STATUS-001",
+  "project_id": "taskboard-demo",
+  "task": "Implement exact task status filtering in list_tasks. Validate invalid status inputs, preserve default ordering, duplicates and input immutability. Run feature and regression tests.",
+  "query": "task status list_tasks filter invalid ordering immutability",
+  "sources": [
+    {
+      "path": "demo/specs/task_status.md",
+      "kind": "spec",
+      "sha256": "dfc569af30dfee6cc10d9096fe1a8150a621b00a0065a5abee795829c46ce9a5",
+      "line_start": 1,
+      "line_end": 25,
+      "relevance": 7,
+      "content": "# Task-board status filtering — effective specification v1\n\n## REQ-STATUS-01: exact status filter\n`taskboard.service.list_tasks(tasks, *, status=None)` accepts `todo`, `doing`, or\n`done`. When status is supplied, return only Task objects whose status exactly\nmatches it. Do not convert case or trim input.\n\n## REQ-STATUS-02: invalid status\nAny other non-None status, including the empty string, upper-case `TODO`, leading\nor trailing whitespace, or a value of a different type, must raise ValueError.\nValidation applies even when the task sequence is empty. Do not accept substrings.\n\n## REQ-COMPAT-01: default and ordering\nWhen status is None, return all tasks in the original input order. Always return\na new list. Preserve duplicates and Task object identity.\n\n## REQ-COMPAT-02: input immutability\nDo not mutate the input sequence or its Task objects. Accept tuple inputs and\nempty sequences. Keep the Task dataclass and public function signature compatible.\n\n## Verification sources\nFeature: `demo/tests/test_status_filter.py`.\nCompatibility: `demo/tests/test_regression.py`.\nImplementation: `demo/before/taskboard/service.py`, symbol `list_tasks`.\nThe same test files must be used against the before and after snapshots.\n",
+      "spec_ids": [
+        "REQ-STATUS-01",
+        "REQ-STATUS-02",
+        "REQ-COMPAT-01",
+        "REQ-COMPAT-02"
+      ]
+    },
+    {
+      "path": "demo/specs/export_format.md",
+      "kind": "spec",
+      "sha256": "8040941290bb3974aa40500c49ce4c681cba81d059d9f2aa9bb1da4208503d8e",
+      "line_start": 1,
+      "line_end": 5,
+      "relevance": 3,
+      "content": "# CSV export format (unrelated to the status task)\n\nExport uses UTF-8, comma separators and a header with task_id,title,status.\nThis specification does not change list behavior. No export modification is\nrequested by the status-filter development task.\n",
+      "spec_ids": []
+    },
+    {
+      "path": "demo/before/taskboard/service.py",
+      "kind": "code",
+      "sha256": "ec96fe5867c14a2e6b2355a5647a2a7b5a8bff87bee9953531ac3a08cffb74fe",
+      "line_start": 1,
+      "line_end": 16,
+      "relevance": 4,
+      "content": "\"\"\"Task-board listing service, before the status-filter development task.\"\"\"\n\nfrom dataclasses import dataclass\nfrom collections.abc import Sequence\n\n\n@dataclass(frozen=True)\nclass Task:\n    task_id: str\n    title: str\n    status: str\n\n\ndef list_tasks(tasks: Sequence[Task], *, status: str | None = None) -> list[Task]:\n    \"\"\"Return tasks in input order. Status filtering is not implemented yet.\"\"\"\n    return list(tasks)\n",
+      "symbols": [
+        {
+          "name": "Task",
+          "line": 8
+        },
+        {
+          "name": "list_tasks",
+          "line": 14
+        }
+      ]
+    },
+    {
+      "path": "demo/before/taskboard/__main__.py",
+      "kind": "code",
+      "sha256": "ea3f3ce60b6f3a3d0bc3c9b41870fa8223d3c39461a18258b654e2d7739f7f86",
+      "line_start": 1,
+      "line_end": 13,
+      "relevance": 3,
+      "content": "\"\"\"Run the sample: python -m taskboard --data demo/data/tasks.json --status todo.\"\"\"\nimport argparse\nimport json\nfrom pathlib import Path\n\nfrom .service import Task, list_tasks\n\nparser = argparse.ArgumentParser()\nparser.add_argument(\"--data\", type=Path, required=True)\nparser.add_argument(\"--status\")\nargs = parser.parse_args()\ntasks = [Task(**item) for item in json.loads(args.data.read_text(encoding=\"utf-8\"))]\nprint(json.dumps([task.__dict__ for task in list_tasks(tasks, status=args.status)], ensure_ascii=False, indent=2))\n",
+      "symbols": []
+    },
+    {
+      "path": "demo/tests/test_status_filter.py",
+      "kind": "test",
+      "sha256": "a3fdfea06bb88a5b6052343ac5d0bde3c154d9a5363cbc0dc2353c7303e2da7d",
+      "line_start": 1,
+      "line_end": 38,
+      "relevance": 5,
+      "content": "\"\"\"Identical target tests for both code snapshots; a before failure is intentional.\"\"\"\nimport pytest\n\nfrom taskboard.service import Task, list_tasks\n\n\n@pytest.fixture\ndef tasks():\n    return [Task(\"3\", \"review\", \"done\"), Task(\"1\", \"spec\", \"todo\"),\n            Task(\"4\", \"code\", \"doing\"), Task(\"2\", \"test\", \"todo\")]\n\n\n@pytest.mark.parametrize(\"status,ids\", [(\"todo\", [\"1\", \"2\"]), (\"doing\", [\"4\"]), (\"done\", [\"3\"])])\ndef test_exact_status_filter(tasks, status, ids):\n    assert [task.task_id for task in list_tasks(tasks, status=status)] == ids\n\n\n@pytest.mark.parametrize(\"status\", [\"\", \"TODO\", \" todo\", \"todo \", \"to\", \"cancelled\", 0, [], {}])\ndef test_invalid_status_is_value_error_even_for_empty_input(status):\n    with pytest.raises(ValueError):\n        list_tasks([], status=status)\n\n\ndef test_no_match_is_empty():\n    assert list_tasks([Task(\"1\", \"spec\", \"done\")], status=\"todo\") == []\n\n\ndef test_filter_keeps_order_duplicates_identity_and_input(tasks):\n    original = tasks + [tasks[1]]\n    snapshot = tuple(original)\n    result = list_tasks(original, status=\"todo\")\n    assert result == [tasks[1], tasks[3], tasks[1]]\n    assert result[0] is original[1] and result[2] is original[1]\n    assert tuple(original) == snapshot\n\n\ndef test_filter_accepts_tuple(tasks):\n    assert list_tasks(tuple(tasks), status=\"done\") == [tasks[0]]\n",
+      "symbols": [
+        {
+          "name": "tasks",
+          "line": 8
+        },
+        {
+          "name": "test_exact_status_filter",
+          "line": 14
+        },
+        {
+          "name": "test_invalid_status_is_value_error_even_for_empty_input",
+          "line": 19
+        },
+        {
+          "name": "test_no_match_is_empty",
+          "line": 24
+        },
+        {
+          "name": "test_filter_keeps_order_duplicates_identity_and_input",
+          "line": 28
+        },
+        {
+          "name": "test_filter_accepts_tuple",
+          "line": 37
+        }
+      ]
+    },
+    {
+      "path": "demo/tests/test_regression.py",
+      "kind": "test",
+      "sha256": "febf3855ce697cf85673f2b01100e2bef5429892384a5e19829bf58e609415ad",
+      "line_start": 1,
+      "line_end": 30,
+      "relevance": 4,
+      "content": "\"\"\"Original task-board listing behaviors which the change must preserve.\"\"\"\nfrom taskboard.service import Task, list_tasks\n\n\ndef test_default_preserves_input_order():\n    tasks = [Task(\"9\", \"later\", \"done\"), Task(\"1\", \"first\", \"todo\")]\n    assert list_tasks(tasks) == tasks\n    assert list_tasks(tasks, status=None) == tasks\n\n\ndef test_default_returns_fresh_list_without_mutation():\n    item = Task(\"1\", \"spec\", \"todo\")\n    tasks = [item, item]\n    result = list_tasks(tasks)\n    assert result == tasks and result is not tasks\n    assert result[0] is item and result[1] is item\n    result.clear()\n    assert tasks == [item, item]\n\n\ndef test_default_accepts_tuple_and_empty():\n    task = Task(\"1\", \"spec\", \"todo\")\n    assert list_tasks((task,)) == [task]\n    assert list_tasks([]) == []\n    assert list_tasks(()) == []\n\n\ndef test_existing_unknown_task_status_is_preserved_without_filter():\n    task = Task(\"1\", \"old imported item\", \"archived\")\n    assert list_tasks([task]) == [task]\n",
+      "symbols": [
+        {
+          "name": "test_default_preserves_input_order",
+          "line": 5
+        },
+        {
+          "name": "test_default_returns_fresh_list_without_mutation",
+          "line": 11
+        },
+        {
+          "name": "test_default_accepts_tuple_and_empty",
+          "line": 21
+        },
+        {
+          "name": "test_existing_unknown_task_status_is_preserved_without_filter",
+          "line": 28
+        }
+      ]
+    }
+  ],
+  "previous_state": {
+    "state": {
+      "completed": [
+        "Imported specifications, code and tests into seekdb",
+        "Retrieved required sources",
+        "Ran unchanged feature and regression tests against before code"
+      ],
+      "next_action": "Use MiniMax to implement list_tasks status filtering, then run the unchanged tests.",
+      "status": "baseline-tested",
+      "todo": [
+        "MiniMax actual code modification",
+        "Run after feature/regression tests",
+        "Verify resumed task"
+      ],
+      "validation": {
+        "before_feature_exit_code": 1,
+        "before_feature_summary": "15 failed in 0.16s",
+        "before_regression_exit_code": 0,
+        "before_regression_summary": "4 passed in 0.02s"
+      },
+      "verified_source_hashes": {
+        "demo/before/taskboard/__main__.py": "ea3f3ce60b6f3a3d0bc3c9b41870fa8223d3c39461a18258b654e2d7739f7f86",
+        "demo/before/taskboard/service.py": "ec96fe5867c14a2e6b2355a5647a2a7b5a8bff87bee9953531ac3a08cffb74fe",
+        "demo/specs/export_format.md": "8040941290bb3974aa40500c49ce4c681cba81d059d9f2aa9bb1da4208503d8e",
+        "demo/specs/task_status.md": "dfc569af30dfee6cc10d9096fe1a8150a621b00a0065a5abee795829c46ce9a5",
+        "demo/tests/test_regression.py": "febf3855ce697cf85673f2b01100e2bef5429892384a5e19829bf58e609415ad",
+        "demo/tests/test_status_filter.py": "a3fdfea06bb88a5b6052343ac5d0bde3c154d9a5363cbc0dc2353c7303e2da7d"
+      }
+    },
+    "source_id": "sdd-state:2eca92f42f57afa8d9aa02fa81c1f047355551c0200e498b9986c7453a99d13b",
+    "source_type": "content",
+    "scope_id": "scp_026211e00w17m67g84xf18z5hk",
+    "sequence": 1,
+    "content_digest": "sha256:e8b50a7cf3b5c9f0603ba7b418a42431020aefc21aa490c699fd070bd07fe5cb"
+  },
+  "next_action": "Use MiniMax to implement list_tasks status filtering, then run the unchanged tests.",
+  "changed_since_verification": [],
+  "verification_current": false,
+  "database": {
+    "backend": "seekdb",
+    "queries": [
+      {
+        "sql": "SELECT VERSION() AS version",
+        "params": [],
+        "rows": [
+          {
+            "version": "5.7.25-OceanBase seekdb-v1.2.0.0"
+          }
+        ]
+      },
+      {
+        "sql": "CREATE TABLE IF NOT EXISTS sdd_materials (\n              project_id VARCHAR(128) NOT NULL, path VARCHAR(512) NOT NULL,\n              kind VARCHAR(16) NOT NULL, sha256 CHAR(64) NOT NULL,\n              content LONGTEXT NOT NULL, PRIMARY KEY(project_id,path)\n            ) DEFAULT CHARSET=utf8mb4",
+        "params": [],
+        "rows": []
+      },
+      {
+        "sql": "SELECT path,kind,sha256,content,(CASE WHEN LOCATE(?,LOWER(content))>0 THEN 1 ELSE 0 END+CASE WHEN LOCATE(?,LOWER(content))>0 THEN 1 ELSE 0 END+CASE WHEN LOCATE(?,LOWER(content))>0 THEN 1 ELSE 0 END+CASE WHEN LOCATE(?,LOWER(content))>0 THEN 1 ELSE 0 END+CASE WHEN LOCATE(?,LOWER(content))>0 THEN 1 ELSE 0 END+CASE WHEN LOCATE(?,LOWER(content))>0 THEN 1 ELSE 0 END+CASE WHEN LOCATE(?,LOWER(content))>0 THEN 1 ELSE 0 END) AS relevance FROM sdd_materials WHERE project_id=? AND kind=? HAVING relevance>0 ORDER BY relevance DESC,path ASC LIMIT ?",
+        "params": [
+          "task",
+          "status",
+          "list_tasks",
+          "filter",
+          "invalid",
+          "ordering",
+          "immutability",
+          "taskboard-demo",
+          "spec",
+          2
+        ],
+        "rows": [
+          {
+            "path": "demo/specs/task_status.md",
+            "kind": "spec",
+            "sha256": "dfc569af30dfee6cc10d9096fe1a8150a621b00a0065a5abee795829c46ce9a5",
+            "content": "# Task-board status filtering — effective specification v1\n\n## REQ-STATUS-01: exact status filter\n`taskboard.service.list_tasks(tasks, *, status=None)` accepts `todo`, `doing`, or\n`done`. When status is supplied, return only Task objects whose status exactly\nmatches it. Do not convert case or trim input.\n\n## REQ-STATUS-02: invalid status\nAny other non-None status, including the empty string, upper-case `TODO`, leading\nor trailing whitespace, or a value of a different type, must raise ValueError.\nValidation applies even when the task sequence is empty. Do not accept substrings.\n\n## REQ-COMPAT-01: default and ordering\nWhen status is None, return all tasks in the original input order. Always return\na new list. Preserve duplicates and Task object identity.\n\n## REQ-COMPAT-02: input immutability\nDo not mutate the input sequence or its Task objects. Accept tuple inputs and\nempty sequences. Keep the Task dataclass and public function signature compatible.\n\n## Verification sources\nFeature: `demo/tests/test_status_filter.py`.\nCompatibility: `demo/tests/test_regression.py`.\nImplementation: `demo/before/taskboard/service.py`, symbol `list_tasks`.\nThe same test files must be used against the before and after snapshots.\n",
+            "relevance": 7
+          },
+          {
+            "path": "demo/specs/export_format.md",
+            "kind": "spec",
+            "sha256": "8040941290bb3974aa40500c49ce4c681cba81d059d9f2aa9bb1da4208503d8e",
+            "content": "# CSV export format (unrelated to the status task)\n\nExport uses UTF-8, comma separators and a header with task_id,title,status.\nThis specification does not change list behavior. No export modification is\nrequested by the status-filter development task.\n",
+            "relevance": 3
+          }
+        ]
+      },
+      {
+        "sql": "SELECT path,kind,sha256,content,(CASE WHEN LOCATE(?,LOWER(content))>0 THEN 1 ELSE 0 END+CASE WHEN LOCATE(?,LOWER(content))>0 THEN 1 ELSE 0 END+CASE WHEN LOCATE(?,LOWER(content))>0 THEN 1 ELSE 0 END+CASE WHEN LOCATE(?,LOWER(content))>0 THEN 1 ELSE 0 END+CASE WHEN LOCATE(?,LOWER(content))>0 THEN 1 ELSE 0 END+CASE WHEN LOCATE(?,LOWER(content))>0 THEN 1 ELSE 0 END+CASE WHEN LOCATE(?,LOWER(content))>0 THEN 1 ELSE 0 END) AS relevance FROM sdd_materials WHERE project_id=? AND kind=? HAVING relevance>0 ORDER BY relevance DESC,path ASC LIMIT ?",
+        "params": [
+          "task",
+          "status",
+          "list_tasks",
+          "filter",
+          "invalid",
+          "ordering",
+          "immutability",
+          "taskboard-demo",
+          "code",
+          2
+        ],
+        "rows": [
+          {
+            "path": "demo/before/taskboard/service.py",
+            "kind": "code",
+            "sha256": "ec96fe5867c14a2e6b2355a5647a2a7b5a8bff87bee9953531ac3a08cffb74fe",
+            "content": "\"\"\"Task-board listing service, before the status-filter development task.\"\"\"\n\nfrom dataclasses import dataclass\nfrom collections.abc import Sequence\n\n\n@dataclass(frozen=True)\nclass Task:\n    task_id: str\n    title: str\n    status: str\n\n\ndef list_tasks(tasks: Sequence[Task], *, status: str | None = None) -> list[Task]:\n    \"\"\"Return tasks in input order. Status filtering is not implemented yet.\"\"\"\n    return list(tasks)\n",
+            "relevance": 4
+          },
+          {
+            "path": "demo/before/taskboard/__main__.py",
+            "kind": "code",
+            "sha256": "ea3f3ce60b6f3a3d0bc3c9b41870fa8223d3c39461a18258b654e2d7739f7f86",
+            "content": "\"\"\"Run the sample: python -m taskboard --data demo/data/tasks.json --status todo.\"\"\"\nimport argparse\nimport json\nfrom pathlib import Path\n\nfrom .service import Task, list_tasks\n\nparser = argparse.ArgumentParser()\nparser.add_argument(\"--data\", type=Path, required=True)\nparser.add_argument(\"--status\")\nargs = parser.parse_args()\ntasks = [Task(**item) for item in json.loads(args.data.read_text(encoding=\"utf-8\"))]\nprint(json.dumps([task.__dict__ for task in list_tasks(tasks, status=args.status)], ensure_ascii=False, indent=2))\n",
+            "relevance": 3
+          }
+        ]
+      },
+      {
+        "sql": "SELECT path,kind,sha256,content,(CASE WHEN LOCATE(?,LOWER(content))>0 THEN 1 ELSE 0 END+CASE WHEN LOCATE(?,LOWER(content))>0 THEN 1 ELSE 0 END+CASE WHEN LOCATE(?,LOWER(content))>0 THEN 1 ELSE 0 END+CASE WHEN LOCATE(?,LOWER(content))>0 THEN 1 ELSE 0 END+CASE WHEN LOCATE(?,LOWER(content))>0 THEN 1 ELSE 0 END+CASE WHEN LOCATE(?,LOWER(content))>0 THEN 1 ELSE 0 END+CASE WHEN LOCATE(?,LOWER(content))>0 THEN 1 ELSE 0 END) AS relevance FROM sdd_materials WHERE project_id=? AND kind=? HAVING relevance>0 ORDER BY relevance DESC,path ASC LIMIT ?",
+        "params": [
+          "task",
+          "status",
+          "list_tasks",
+          "filter",
+          "invalid",
+          "ordering",
+          "immutability",
+          "taskboard-demo",
+          "test",
+          2
+        ],
+        "rows": [
+          {
+            "path": "demo/tests/test_status_filter.py",
+            "kind": "test",
+            "sha256": "a3fdfea06bb88a5b6052343ac5d0bde3c154d9a5363cbc0dc2353c7303e2da7d",
+            "content": "\"\"\"Identical target tests for both code snapshots; a before failure is intentional.\"\"\"\nimport pytest\n\nfrom taskboard.service import Task, list_tasks\n\n\n@pytest.fixture\ndef tasks():\n    return [Task(\"3\", \"review\", \"done\"), Task(\"1\", \"spec\", \"todo\"),\n            Task(\"4\", \"code\", \"doing\"), Task(\"2\", \"test\", \"todo\")]\n\n\n@pytest.mark.parametrize(\"status,ids\", [(\"todo\", [\"1\", \"2\"]), (\"doing\", [\"4\"]), (\"done\", [\"3\"])])\ndef test_exact_status_filter(tasks, status, ids):\n    assert [task.task_id for task in list_tasks(tasks, status=status)] == ids\n\n\n@pytest.mark.parametrize(\"status\", [\"\", \"TODO\", \" todo\", \"todo \", \"to\", \"cancelled\", 0, [], {}])\ndef test_invalid_status_is_value_error_even_for_empty_input(status):\n    with pytest.raises(ValueError):\n        list_tasks([], status=status)\n\n\ndef test_no_match_is_empty():\n    assert list_tasks([Task(\"1\", \"spec\", \"done\")], status=\"todo\") == []\n\n\ndef test_filter_keeps_order_duplicates_identity_and_input(tasks):\n    original = tasks + [tasks[1]]\n    snapshot = tuple(original)\n    result = list_tasks(original, status=\"todo\")\n    assert result == [tasks[1], tasks[3], tasks[1]]\n    assert result[0] is original[1] and result[2] is original[1]\n    assert tuple(original) == snapshot\n\n\ndef test_filter_accepts_tuple(tasks):\n    assert list_tasks(tuple(tasks), status=\"done\") == [tasks[0]]\n",
+            "relevance": 5
+          },
+          {
+            "path": "demo/tests/test_regression.py",
+            "kind": "test",
+            "sha256": "febf3855ce697cf85673f2b01100e2bef5429892384a5e19829bf58e609415ad",
+            "content": "\"\"\"Original task-board listing behaviors which the change must preserve.\"\"\"\nfrom taskboard.service import Task, list_tasks\n\n\ndef test_default_preserves_input_order():\n    tasks = [Task(\"9\", \"later\", \"done\"), Task(\"1\", \"first\", \"todo\")]\n    assert list_tasks(tasks) == tasks\n    assert list_tasks(tasks, status=None) == tasks\n\n\ndef test_default_returns_fresh_list_without_mutation():\n    item = Task(\"1\", \"spec\", \"todo\")\n    tasks = [item, item]\n    result = list_tasks(tasks)\n    assert result == tasks and result is not tasks\n    assert result[0] is item and result[1] is item\n    result.clear()\n    assert tasks == [item, item]\n\n\ndef test_default_accepts_tuple_and_empty():\n    task = Task(\"1\", \"spec\", \"todo\")\n    assert list_tasks((task,)) == [task]\n    assert list_tasks([]) == []\n    assert list_tasks(()) == []\n\n\ndef test_existing_unknown_task_status_is_preserved_without_filter():\n    task = Task(\"1\", \"old imported item\", \"archived\")\n    assert list_tasks([task]) == [task]\n",
+            "relevance": 4
+          }
+        ]
+      }
+    ]
+  }
+}

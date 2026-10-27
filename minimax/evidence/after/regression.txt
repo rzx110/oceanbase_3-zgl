@@ -1,0 +1,6 @@
+Command: ${PYTHON} -m pytest -q -p no:cacheprovider demo/tests/test_regression.py
+Snapshot: demo/after
+Exit code: 0
+
+....                                                                     [100%]
+4 passed in 0.02s

@@ -1,0 +1,6 @@
+Command: ${PYTHON} -m pytest -q -p no:cacheprovider demo/tests/test_status_filter.py
+Snapshot: demo/after
+Exit code: 0
+
+...............                                                          [100%]
+15 passed in 0.03s
