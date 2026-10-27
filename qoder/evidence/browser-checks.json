@@ -1,0 +1,18 @@
+{
+  "timestamp_utc": "2026-10-27T13:59:50.202940+00:00",
+  "browser_url": "http://127.0.0.1:8766",
+  "dataset": "fictional demo data",
+  "steps": [
+    "Imported demo data in the browser",
+    "Changed Multi-Head Attention task to done in the browser",
+    "Searched Chinese 显存 and opened exact original citation",
+    "Gracefully restarted HTTP service",
+    "Confirmed project counts, done state and exact citation over HTTP after restart"
+  ],
+  "project_counts_after_restart": {
+    "weekly-review": 5,
+    "paper-repro": 6
+  },
+  "latest_task_source_id": "note:paper-repro:todo-001:r2",
+  "passed": true
+}

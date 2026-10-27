@@ -1,0 +1,27 @@
+{
+  "url": "https://research-desk-mbqdjnphp29.qoder.zone",
+  "cookies_sent": false,
+  "checks": [
+    {
+      "path": "/",
+      "status": 200,
+      "bytes": 77581
+    },
+    {
+      "path": "/app-citation.jpg",
+      "status": 200,
+      "bytes": 56488
+    },
+    {
+      "path": "/app-workbench.jpg",
+      "status": 200,
+      "bytes": 88823
+    },
+    {
+      "path": "/qoder-cli-development.png",
+      "status": 200,
+      "bytes": 114755
+    }
+  ],
+  "passed": true
+}

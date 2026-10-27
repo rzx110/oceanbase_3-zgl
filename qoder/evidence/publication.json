@@ -1,0 +1,44 @@
+{
+  "site": {
+    "name": "研迹 Research Desk",
+    "url": "https://research-desk-mbqdjnphp29.qoder.zone",
+    "site_id": "01a17da9-4aa6-7141-9cb2-2124e6fa1d20",
+    "project_id": "01a17da9-4aa4-797b-a448-f0ef276fb5ba",
+    "access_mode": "public",
+    "lifecycle": "active",
+    "governance_status": "normal",
+    "host": "research-desk-mbqdjnphp29.qoder.zone",
+    "subdomain_prefix": "research-desk"
+  },
+  "publication": {
+    "actionId": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+    "publishOperationId": "01a17da9-ae4f-703a-9ce3-2247ed49c058",
+    "published": true,
+    "readiness": "publication_completed",
+    "published_at": "2026-10-27T14:00:35Z"
+  },
+  "source": {
+    "repository": "https://github.com/rzx110/oceanbase_3-zgl.git",
+    "branch": "2026-competition-ecosystem",
+    "directory": "qoder/",
+    "core_commit": "97cbfbeb2e4b85a71512ce49cfa6c018831b870f",
+    "powercontext_commit": "9db1753434162c0aa7c9f1189a1722e617880a52"
+  },
+  "verification": {
+    "scenarios_passed": 7,
+    "script": "verify.py",
+    "command": "uv run --frozen python verify.py",
+    "independent_checks": "evidence/independent-checks.json"
+  },
+  "account_uid": {
+    "value": "01a17cc8-3479-75ef-bc6a-658a78ab19df",
+    "account_name": "nick2566971799",
+    "source": "Official Qoder CLI status.avatar_url user-resource path",
+    "verification": "Extracted from the official /users/{id}/ resource path; the Sites response does not expose a separate UID field."
+  },
+  "notes": {
+    "static_only": "本页面为静态 HTML 展示，不含线上 Python/PowerContext 后端",
+    "demo_data_fictional": "所有演示数据均为虚构内容",
+    "no_backend_migrated": "本地后端未迁移到云端，仅托管静态产物"
+  }
+}

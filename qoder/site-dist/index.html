@@ -250,17 +250,44 @@
   </div>
 </section>
 
-<!-- 真实截图 -->
+<!-- 应用截图与开发记录 -->
 <section>
   <div class="container">
-    <h2>应用实测截图</h2>
+    <h2>应用实测截图 <span class="fictional">演示数据为虚构</span></h2>
+
     <div class="screenshot-wrap">
-      <img src="app-citation.jpg" alt="研迹应用实测截图 — 搜索'显存'并查看原文详情弹窗" width="800">
+      <img src="app-citation.jpg" alt="搜索'显存'并查看原文详情弹窗" width="800">
       <p class="screenshot-caption">
-        真实浏览器截图：搜索关键词"显存"，点击"查看原文"弹出详情弹窗，显示分类（阻塞）、来源 ID 和完整笔记内容。
-        <span class="fictional">数据为虚构</span>
+        搜索关键词"显存"，点击"查看原文"弹出详情弹窗，显示分类（阻塞）、来源 ID 和完整笔记内容。
       </p>
     </div>
+
+    <div class="screenshot-wrap">
+      <img src="app-workbench.jpg" alt="研迹工作台主界面" width="800">
+      <p class="screenshot-caption">
+        工作台主界面：左侧项目列表，右侧搜索/添加资料/继续工作三个标签页。
+      </p>
+    </div>
+
+    <h3>Qoder CLI 开发会话截图</h3>
+    <div class="screenshot-wrap">
+      <img src="qoder-cli-development.png" alt="Qoder CLI 开发会话截图" width="800">
+      <p class="screenshot-caption">
+        Qoder CLI 实际开发会话截图，由用户提供。会话 ID：<code>4d600a49-75dc-4311-a3f7-811be5815bca</code>。
+        开发记录：<a href="https://github.com/rzx110/oceanbase_3-zgl/tree/2026-competition-ecosystem/qoder/evidence/qoder-development.md">evidence/qoder-development.md</a>。
+        截图中颜色显示 Warning 不表示测试失败，仅为终端配色。
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- 关于本页面 -->
+<section>
+  <div class="container">
+    <h2>关于本页面</h2>
+    <p>本页面为项目展示与评审入口，托管于 Qoder Sites。页面本身为静态 HTML，<strong>不包含线上 Python 或 PowerContext 后端</strong>。</p>
+    <p>完整应用需在本地运行：按下方"快速开始"克隆仓库、安装依赖、启动 FastAPI 服务器后，在浏览器中访问 <code>http://127.0.0.1:8000</code> 即可使用。应用实际使用 PowerContext <code>BuiltinRuntime</code> 进行 Scope 管理、Source Capture、Memory Flush 和 FTS5 全文检索。</p>
+    <p>本项目的检索能力基于 SQLite FTS5 的规则分词和关键词匹配，未使用在线语言模型。所有演示数据均为虚构内容，不代表真实研究项目或业务指标，未涉及真实用户提效指标。</p>
   </div>
 </section>
 
@@ -275,8 +302,8 @@
     <h3>场景二：每周业务复盘</h3>
     <p>团队每周记录完成事项、阻塞问题、决策和参考资料。研迹自动按类别整理为"继续工作"清单，成员可以更新任务状态（如将"待办"改为"已完成"），系统保留旧版本引用以确保历史可追溯。</p>
 
-    <h3>场景三：跨项目知识检索</h3>
-    <p>多个研究项目共享同一 Memory 索引。搜索"注意力"可同时检索到论文复现项目中的理论笔记和业务复盘中的相关讨论，每个结果都携带项目归属和精确引用。</p>
+    <h3>场景三：项目范围隔离</h3>
+    <p>每个项目拥有独立的 Scope 和 Memory 索引。搜索严格限制在当前所选项目内，其他项目的笔记不会混入结果。每个结果携带项目归属标识，确保检索边界清晰。</p>
   </div>
 </section>
 
@@ -352,7 +379,7 @@
       </thead>
       <tbody>
         <tr>
-          <td><code>runtime.scopes.create_scope()</code></td>
+          <td><code>runtime.scopes.create()</code></td>
           <td>创建项目 Scope</td>
           <td><code>idempotency_key</code> + <code>external_references</code></td>
         </tr>
@@ -410,23 +437,20 @@
 <section>
   <div class="container">
     <h2>验证记录</h2>
-    <p>以下功能已通过 <code>verify.py</code> 实际运行验证：</p>
+    <p>以下 7 个场景已通过 <code>verify.py</code> 使用临时数据库实际运行验证，另有 9 项独立检查（见 <code>evidence/verification.txt</code> 和 <code>evidence/independent-checks.json</code>）：</p>
 
     <table>
       <thead>
-        <tr><th>验证项</th><th>结果</th></tr>
+        <tr><th>场景</th><th>验证内容</th><th>结果</th></tr>
       </thead>
       <tbody>
-        <tr><td>核心流程（capture → flush → search → citation）</td><td>✓ 通过</td></tr>
-        <tr><td>中文全文检索（"显存""注意力""支付"）</td><td>✓ 通过</td></tr>
-        <tr><td>负例搜索（不存在的关键词返回 0 结果）</td><td>✓ 通过</td></tr>
-        <tr><td>引用回溯（MemoryCitation 回查原文）</td><td>✓ 通过</td></tr>
-        <tr><td>重启恢复（项目、笔记计数、搜索）</td><td>✓ 通过</td></tr>
-        <tr><td>幂等导入（重复导入报告新增/跳过）</td><td>✓ 通过</td></tr>
-        <tr><td>状态更新（版本化 Source，旧引用保留）</td><td>✓ 通过</td></tr>
-        <tr><td>边界情况（空名称、非法类别、未知项目）</td><td>✓ 通过</td></tr>
-        <tr><td>XSS 防护（事件绑定 + safeUrl）</td><td>✓ 通过</td></tr>
-        <tr><td>同源 CORS（无 allow_origins=["*"]）</td><td>✓ 通过</td></tr>
+        <tr><td>1</td><td>引用隔离：状态变更后旧引用返回 todo，新引用返回 done；重启后旧引用仍为 todo</td><td>✓</td></tr>
+        <tr><td>2</td><td>搜索去重：状态变更后 search 仅返回 1 条 done；limit=1 正确</td><td>✓</td></tr>
+        <tr><td>3</td><td>多笔记 limit：两条笔记含同检索词，一条多次修订；limit=2 返回两条最新状态</td><td>✓</td></tr>
+        <tr><td>4</td><td>幂等计数：重复标记相同状态 note_count 不增长；重启后数量一致</td><td>✓</td></tr>
+        <tr><td>5</td><td>跨项目隔离：同文本不同 note_id 均可追溯到各自 source_id 和 category</td><td>✓</td></tr>
+        <tr><td>6</td><td>继续工作引用：continue-work 项携带 citation，回查与 source_id/正文一致</td><td>✓</td></tr>
+        <tr><td>7</td><td>SDK 版本：安装 commit 与冻结 SHA <code>9db1753…a52</code> 匹配</td><td>✓</td></tr>
       </tbody>
     </table>
 
@@ -460,26 +484,6 @@ PYTHONPATH=src uv run python verify.py
 PYTHONPATH=src uv run python -m research_desk.server
 
 <span class="comment"># 5. 打开浏览器访问 http://127.0.0.1:8000</span>
-    </div>
-  </div>
-</section>
-
-<!-- 待补充项 -->
-<section>
-  <div class="container">
-    <h2>待补充项</h2>
-    <p>以下内容将在后续迭代中补充：</p>
-    <div class="placeholder">
-      <strong>Qoder 开发截图</strong><br>
-      Qoder 编辑器中的开发过程截图（待补充）
-    </div>
-    <div class="placeholder">
-      <strong>Qoder UID</strong><br>
-      Qoder 用户标识符（待补充）
-    </div>
-    <div class="placeholder">
-      <strong>Qoder Sites 公网 URL</strong><br>
-      部署后的公网访问地址（本轮仅构建，未发布）
     </div>
   </div>
 </section>
