@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>研迹 / Research Desk — 基于 PowerContext 的研究进度记忆台</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #fafaf8;
+    --card: #ffffff;
+    --text: #1a2332;
+    --muted: #6b7b8d;
+    --accent: #0d5c63;
+    --accent-light: #e8f4f5;
+    --orange: #e8833a;
+    --border: #e2e8f0;
+    --radius: 10px;
+    --shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 12px rgba(0,0,0,.04);
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+
+  /* Header */
+  header {
+    background: linear-gradient(135deg, #0d5c63 0%, #147a84 100%);
+    color: #fff;
+    padding: 64px 0 48px;
+  }
+  header h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.02em; }
+  header .subtitle { font-size: 1.1rem; opacity: .85; margin-top: 8px; }
+  header .badge {
+    display: inline-block;
+    background: rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.25);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: .8rem;
+    margin-top: 16px;
+  }
+
+  /* Sections */
+  section { padding: 48px 0; }
+  section:nth-child(even) { background: #f3f6f8; }
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 24px;
+    color: var(--accent);
+  }
+  h3 { font-size: 1.1rem; font-weight: 600; margin: 20px 0 10px; }
+  p { margin-bottom: 16px; color: #3a4a5c; }
+
+  /* Cards */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+    margin-top: 24px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow);
+  }
+  .card h3 { color: var(--accent); margin-top: 0; }
+  .card p { font-size: .92rem; margin-bottom: 0; }
+
+  /* Screenshot */
+  .screenshot-wrap {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow);
+    margin: 24px 0;
+    text-align: center;
+  }
+  .screenshot-wrap img {
+    max-width: 100%;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+  .screenshot-caption {
+    font-size: .85rem;
+    color: var(--muted);
+    margin-top: 12px;
+  }
+
+  /* Fictional label */
+  .fictional {
+    display: inline-block;
+    background: #fef3e2;
+    color: #9a6a20;
+    font-size: .75rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  /* Architecture diagram */
+  .arch-diagram {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+    font-size: .82rem;
+    line-height: 1.5;
+    overflow-x: auto;
+    white-space: pre;
+    box-shadow: var(--shadow);
+    color: var(--text);
+  }
+
+  /* Code block */
+  .code-block {
+    background: #1e293b;
+    color: #e2e8f0;
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+    font-size: .85rem;
+    line-height: 1.6;
+    overflow-x: auto;
+    margin: 16px 0;
+  }
+  .code-block .comment { color: #94a3b8; }
+  .code-block .keyword { color: #7dd3fc; }
+  .code-block .string { color: #86efac; }
+
+  /* Steps */
+  .steps { counter-reset: step; list-style: none; }
+  .steps li {
+    counter-increment: step;
+    padding: 16px 0 16px 56px;
+    position: relative;
+    border-bottom: 1px solid var(--border);
+  }
+  .steps li:last-child { border-bottom: none; }
+  .steps li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0;
+    top: 16px;
+    width: 36px;
+    height: 36px;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 36px;
+    font-weight: 700;
+    font-size: .9rem;
+  }
+
+  /* Table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: .9rem;
+  }
+  th, td {
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  th { background: var(--accent-light); font-weight: 600; color: var(--accent); }
+
+  /* Links */
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* Placeholder box */
+  .placeholder {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 32px;
+    text-align: center;
+    color: var(--muted);
+    font-size: .9rem;
+    margin: 16px 0;
+  }
+
+  /* Footer */
+  footer {
+    background: #1a2332;
+    color: #94a3b8;
+    padding: 32px 0;
+    font-size: .85rem;
+    text-align: center;
+  }
+  footer a { color: #7dd3fc; }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    header { padding: 40px 0 32px; }
+    header h1 { font-size: 1.5rem; }
+    section { padding: 32px 0; }
+    .card-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <h1>研迹 / Research Desk</h1>
+    <p class="subtitle">本地优先的研究进度记忆台 — 基于 PowerContext 真实 Runtime 构建</p>
+    <span class="badge">2026 OceanBase 竞赛 · 生态赛道</span>
+  </div>
+</header>
+
+<!-- 项目概述 -->
+<section>
+  <div class="container">
+    <h2>项目概述</h2>
+    <p>研迹是一个面向研究者的本地优先进度管理工具。它将研究笔记、进展记录、阻塞问题和决策文档统一摄入 PowerContext 的 Memory 系统，提供中文全文检索、精确引用回溯和智能继续工作清单。</p>
+    <p>所有数据存储在本地 SQLite 数据库中，不依赖外部服务。通过 PowerContext 的 <code>BuiltinRuntime</code> 实现 Scope 隔离、Source Capture、Memory Flush 和 FTS5 全文检索。</p>
+
+    <div class="card-grid">
+      <div class="card">
+        <h3>中文全文检索</h3>
+        <p>基于 SQLite FTS5 的中文分词搜索，支持"显存""注意力""支付"等关键词，负例搜索返回零结果。</p>
+      </div>
+      <div class="card">
+        <h3>精确引用回溯</h3>
+        <p>搜索结果携带 <code>MemoryCitation</code>，点击即可回查原文、分类和来源 ID。</p>
+      </div>
+      <div class="card">
+        <h3>版本化状态更新</h3>
+        <p>Source 不可变，状态变更通过版本化 Source ID（<code>:r2</code>、<code>:r3</code>…）实现，旧引用完整保留。</p>
+      </div>
+      <div class="card">
+        <h3>幂等导入与重启恢复</h3>
+        <p>重复导入准确报告新增/跳过数量；重启后自动从数据库恢复所有项目和笔记计数。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 真实截图 -->
+<section>
+  <div class="container">
+    <h2>应用实测截图</h2>
+    <div class="screenshot-wrap">
+      <img src="app-citation.jpg" alt="研迹应用实测截图 — 搜索'显存'并查看原文详情弹窗" width="800">
+      <p class="screenshot-caption">
+        真实浏览器截图：搜索关键词"显存"，点击"查看原文"弹出详情弹窗，显示分类（阻塞）、来源 ID 和完整笔记内容。
+        <span class="fictional">数据为虚构</span>
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- 使用场景 -->
+<section>
+  <div class="container">
+    <h2>使用场景 <span class="fictional">演示数据为虚构</span></h2>
+
+    <h3>场景一：论文复现追踪</h3>
+    <p>研究者复现 Vaswani et al. 2017 的 Transformer 论文时，将参考文献、实验进度、阻塞问题（如 GPU 显存不足）、架构决策和待办事项逐一记录为笔记。通过搜索"显存"快速定位到阻塞条目，点击引用回溯查看完整上下文。</p>
+
+    <h3>场景二：每周业务复盘</h3>
+    <p>团队每周记录完成事项、阻塞问题、决策和参考资料。研迹自动按类别整理为"继续工作"清单，成员可以更新任务状态（如将"待办"改为"已完成"），系统保留旧版本引用以确保历史可追溯。</p>
+
+    <h3>场景三：跨项目知识检索</h3>
+    <p>多个研究项目共享同一 Memory 索引。搜索"注意力"可同时检索到论文复现项目中的理论笔记和业务复盘中的相关讨论，每个结果都携带项目归属和精确引用。</p>
+  </div>
+</section>
+
+<!-- 核心工作流 -->
+<section>
+  <div class="container">
+    <h2>核心工作流</h2>
+    <ol class="steps">
+      <li>
+        <strong>创建项目</strong> — 每个项目映射为一个 PowerContext Scope，设置 <code>idempotency_key</code> 和 <code>ScopeExternalReference</code> 以支持重启恢复。
+      </li>
+      <li>
+        <strong>摄入笔记</strong> — 通过 <code>runtime.sources.for_scope(scope_id).capture(CaptureSource(...))</code> 本地捕获笔记，版本化 Source ID 格式为 <code>note:{project_id}:{note_id}</code>（v1）或 <code>note:{project_id}:{note_id}:r{N}</code>（vN）。
+      </li>
+      <li>
+        <strong>触发 Memory</strong> — 调用 <code>runtime.memory.for_scope(scope_id).flush()</code>，确定性管线将笔记提取为 Memory 条目并建立 FTS5 索引。
+      </li>
+      <li>
+        <strong>搜索与引用</strong> — 使用 <code>SearchMemoryRequest(query, mode="fts")</code> 检索，从 <code>MemoryHit</code> 构造 <code>MemoryCitation</code> 实现精确回溯。
+      </li>
+      <li>
+        <strong>状态更新</strong> — 更新任务状态时创建新版本 Source（<code>increment_count=False</code>），保持逻辑笔记计数准确，旧引用仍可回查历史版本。
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- 技术架构 -->
+<section>
+  <div class="container">
+    <h2>技术架构</h2>
+    <div class="arch-diagram">┌─────────────────────────────────────────────────────┐
+│  Frontend (static/index.html)                       │
+│  - 中文 UI，移动端响应式                              │
+│  - 暖白 + 青绿 + 橙色配色                             │
+│  - XSS 安全：事件绑定 + data 属性 + safeUrl()         │
+└────────────────────┬────────────────────────────────┘
+                     │ HTTP API（同源，无 CORS）
+┌────────────────────▼────────────────────────────────┐
+│  Backend (FastAPI)                                   │
+│  src/research_desk/server.py                         │
+│  - /api/projects, /api/notes, /api/search            │
+│  - /api/citation/get, /api/tasks/update-status       │
+│  - /api/continue-work/{id}, /api/demo/import         │
+└────────────────────┬────────────────────────────────┘
+                     │
+┌────────────────────▼────────────────────────────────┐
+│  Runtime (PowerContext BuiltinRuntime)               │
+│  src/research_desk/runtime.py                        │
+│  - Scope 管理，版本化 Source capture                  │
+│  - Memory flush + 确定性候选管线 (pipeline.py)        │
+│  - JSON 编码元数据持久化                               │
+│  - 重启恢复：reload_projects()                        │
+└────────────────────┬────────────────────────────────┘
+                     │
+┌────────────────────▼────────────────────────────────┐
+│  Storage (SQLite + aiosqlite)                        │
+│  data/research_desk.db                               │
+│  - Scopes, Sources, Memory entries, FTS index        │
+└─────────────────────────────────────────────────────┘</div>
+  </div>
+</section>
+
+<!-- PowerContext 技术闭环 -->
+<section>
+  <div class="container">
+    <h2>PowerContext 技术闭环</h2>
+    <p>本项目完整使用了 PowerContext BuiltinRuntime 的核心 API，形成从摄入到检索的闭环：</p>
+
+    <table>
+      <thead>
+        <tr><th>API</th><th>用途</th><th>关键细节</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>runtime.scopes.create_scope()</code></td>
+          <td>创建项目 Scope</td>
+          <td><code>idempotency_key</code> + <code>external_references</code></td>
+        </tr>
+        <tr>
+          <td><code>runtime.sources.for_scope().capture()</code></td>
+          <td>本地摄入笔记</td>
+          <td><code>CaptureSource(source_id, content, metadata)</code></td>
+        </tr>
+        <tr>
+          <td><code>runtime.memory.for_scope().flush()</code></td>
+          <td>触发候选管线</td>
+          <td>确定性管线，无需 LLM</td>
+        </tr>
+        <tr>
+          <td><code>runtime.memory.for_scope().search()</code></td>
+          <td>全文检索</td>
+          <td><code>SearchMemoryRequest(mode="fts")</code></td>
+        </tr>
+        <tr>
+          <td><code>runtime.records.for_scope().get_source()</code></td>
+          <td>读取 Source 元数据</td>
+          <td>JSON 编码的 content 字段</td>
+        </tr>
+        <tr>
+          <td><code>runtime.memory.for_scope().list()</code></td>
+          <td>列出 Memory 条目</td>
+          <td>用于继续工作清单</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>关键设计决策</h3>
+    <div class="card-grid">
+      <div class="card">
+        <h3>版本化 Source ID</h3>
+        <p>Source 不可变，状态更新通过创建新版本（<code>:r2</code>、<code>:r3</code>…）实现。管线按逻辑 note_id 分组，取最新版本文本，引用所有版本。</p>
+      </div>
+      <div class="card">
+        <h3>JSON 元数据编码</h3>
+        <p><code>SourceRecord.content</code> 仅存储文本，元数据通过 JSON 嵌入：<code>{"text": "...", "metadata": {"title": "...", "category": "..."}}</code></p>
+      </div>
+      <div class="card">
+        <h3>幂等导入</h3>
+        <p>导入前检查 Source 是否存在，已存在则跳过。准确返回 <code>{projects, notes, skipped}</code>。</p>
+      </div>
+      <div class="card">
+        <h3>重启恢复</h3>
+        <p>启动时调用 <code>reload_projects()</code>，从数据库重新发现所有 Scope，重建版本缓存和逻辑笔记计数。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 验证记录 -->
+<section>
+  <div class="container">
+    <h2>验证记录</h2>
+    <p>以下功能已通过 <code>verify.py</code> 实际运行验证：</p>
+
+    <table>
+      <thead>
+        <tr><th>验证项</th><th>结果</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>核心流程（capture → flush → search → citation）</td><td>✓ 通过</td></tr>
+        <tr><td>中文全文检索（"显存""注意力""支付"）</td><td>✓ 通过</td></tr>
+        <tr><td>负例搜索（不存在的关键词返回 0 结果）</td><td>✓ 通过</td></tr>
+        <tr><td>引用回溯（MemoryCitation 回查原文）</td><td>✓ 通过</td></tr>
+        <tr><td>重启恢复（项目、笔记计数、搜索）</td><td>✓ 通过</td></tr>
+        <tr><td>幂等导入（重复导入报告新增/跳过）</td><td>✓ 通过</td></tr>
+        <tr><td>状态更新（版本化 Source，旧引用保留）</td><td>✓ 通过</td></tr>
+        <tr><td>边界情况（空名称、非法类别、未知项目）</td><td>✓ 通过</td></tr>
+        <tr><td>XSS 防护（事件绑定 + safeUrl）</td><td>✓ 通过</td></tr>
+        <tr><td>同源 CORS（无 allow_origins=["*"]）</td><td>✓ 通过</td></tr>
+      </tbody>
+    </table>
+
+    <h3>运行验证</h3>
+    <div class="code-block">
+<span class="comment"># Windows PowerShell</span>
+<span class="keyword">$env:PYTHONPATH</span> = <span class="string">"src"</span>; uv run python verify.py
+
+<span class="comment"># Bash / macOS / Linux</span>
+PYTHONPATH=src uv run python verify.py
+    </div>
+  </div>
+</section>
+
+<!-- 快速开始 -->
+<section>
+  <div class="container">
+    <h2>快速开始</h2>
+    <div class="code-block">
+<span class="comment"># 1. 克隆仓库</span>
+git clone https://github.com/rzx110/oceanbase_3-zgl.git -b 2026-competition-ecosystem
+cd oceanbase_3-zgl/qoder
+
+<span class="comment"># 2. 安装依赖（冻结到 PowerContext git commit）</span>
+uv sync --frozen
+
+<span class="comment"># 3. 运行验证</span>
+PYTHONPATH=src uv run python verify.py
+
+<span class="comment"># 4. 启动服务器</span>
+PYTHONPATH=src uv run python -m research_desk.server
+
+<span class="comment"># 5. 打开浏览器访问 http://127.0.0.1:8000</span>
+    </div>
+  </div>
+</section>
+
+<!-- 待补充项 -->
+<section>
+  <div class="container">
+    <h2>待补充项</h2>
+    <p>以下内容将在后续迭代中补充：</p>
+    <div class="placeholder">
+      <strong>Qoder 开发截图</strong><br>
+      Qoder 编辑器中的开发过程截图（待补充）
+    </div>
+    <div class="placeholder">
+      <strong>Qoder UID</strong><br>
+      Qoder 用户标识符（待补充）
+    </div>
+    <div class="placeholder">
+      <strong>Qoder Sites 公网 URL</strong><br>
+      部署后的公网访问地址（本轮仅构建，未发布）
+    </div>
+  </div>
+</section>
+
+<!-- 项目信息 -->
+<section>
+  <div class="container">
+    <h2>项目信息</h2>
+    <table>
+      <tbody>
+        <tr><th>仓库</th><td><a href="https://github.com/rzx110/oceanbase_3-zgl.git">https://github.com/rzx110/oceanbase_3-zgl.git</a></td></tr>
+        <tr><th>分支</th><td><code>2026-competition-ecosystem</code></td></tr>
+        <tr><th>PowerContext</th><td>git commit <code>9db1753434162c0aa7c9f1189a1722e617880a52</code></td></tr>
+        <tr><th>依赖</th><td>FastAPI, uvicorn, aiosqlite</td></tr>
+        <tr><th>许可证</th><td>Apache 2.0（遵循 PowerContext）</td></tr>
+        <tr><th>演示数据</th><td>虚构内容，不代表真实研究项目或业务指标 <span class="fictional">虚构</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>研迹 / Research Desk — 2026 OceanBase 竞赛 · 生态赛道</p>
+    <p>基于 <a href="https://github.com/oceanbase/powercontext">PowerContext</a> 构建 · 源码：<a href="https://github.com/rzx110/oceanbase_3-zgl/tree/2026-competition-ecosystem/qoder">qoder/</a></p>
+  </div>
+</footer>
+
+</body>
+</html>

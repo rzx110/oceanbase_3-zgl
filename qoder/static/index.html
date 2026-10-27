@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>研迹 Research Desk</title>
+<style>
+:root {
+  --bg: #faf8f5;
+  --bg-card: #ffffff;
+  --bg-sidebar: #f5f2ee;
+  --text: #2c3e50;
+  --text-secondary: #6b7c8d;
+  --teal: #1a6b6a;
+  --teal-light: #e8f4f3;
+  --teal-dark: #0d4f4e;
+  --orange: #e67e22;
+  --orange-light: #fef5e7;
+  --border: #e8e4df;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06);
+  --radius: 8px;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.6; }
+.app { display: flex; min-height: 100vh; }
+
+/* Sidebar */
+.sidebar {
+  width: 260px; background: var(--bg-sidebar); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; flex-shrink: 0;
+  position: fixed; top: 0; left: 0; bottom: 0; z-index: 100;
+  transition: transform 0.3s ease;
+}
+.sidebar-header {
+  padding: 20px; border-bottom: 1px solid var(--border);
+}
+.sidebar-header h1 {
+  font-size: 20px; color: var(--teal); font-weight: 700;
+  display: flex; align-items: center; gap: 8px;
+}
+.sidebar-header h1 .icon { font-size: 24px; }
+.sidebar-header p { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+.sidebar-actions { padding: 12px; display: flex; gap: 8px; }
+.sidebar-actions button {
+  flex: 1; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--bg-card); cursor: pointer; font-size: 13px; color: var(--text);
+  transition: all 0.2s;
+}
+.sidebar-actions button:hover { border-color: var(--teal); color: var(--teal); }
+.sidebar-actions button.primary { background: var(--teal); color: white; border-color: var(--teal); }
+.sidebar-actions button.primary:hover { background: var(--teal-dark); }
+.project-list { flex: 1; overflow-y: auto; padding: 8px; }
+.project-item {
+  padding: 12px; border-radius: var(--radius); cursor: pointer;
+  margin-bottom: 4px; transition: all 0.2s;
+}
+.project-item:hover { background: var(--bg-card); }
+.project-item.active { background: var(--teal-light); border-left: 3px solid var(--teal); }
+.project-item h3 { font-size: 14px; font-weight: 600; }
+.project-item p { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+.project-item .count { font-size: 11px; color: var(--teal); margin-top: 4px; }
+
+/* Main content */
+.main { flex: 1; margin-left: 260px; padding: 24px; max-width: 900px; }
+.main-header { margin-bottom: 24px; }
+.main-header h2 { font-size: 22px; color: var(--teal-dark); }
+.main-header p { color: var(--text-secondary); font-size: 14px; margin-top: 4px; }
+
+/* Tabs */
+.tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 20px; }
+.tab {
+  padding: 10px 20px; cursor: pointer; font-size: 14px; font-weight: 500;
+  color: var(--text-secondary); border-bottom: 2px solid transparent;
+  margin-bottom: -2px; transition: all 0.2s;
+}
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--teal); border-bottom-color: var(--teal); }
+
+/* Cards */
+.card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow);
+}
+.card h3 { font-size: 16px; color: var(--teal-dark); margin-bottom: 12px; }
+
+/* Forms */
+.form-group { margin-bottom: 14px; }
+.form-group label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 4px; color: var(--text-secondary); }
+.form-group input, .form-group textarea, .form-group select {
+  width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius);
+  font-size: 14px; font-family: var(--font); transition: border-color 0.2s;
+  background: var(--bg);
+}
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+  outline: none; border-color: var(--teal);
+}
+.form-group textarea { min-height: 100px; resize: vertical; }
+.form-row { display: flex; gap: 12px; }
+.form-row .form-group { flex: 1; }
+.btn {
+  padding: 10px 20px; border: none; border-radius: var(--radius); cursor: pointer;
+  font-size: 14px; font-weight: 500; transition: all 0.2s;
+}
+.btn-primary { background: var(--teal); color: white; }
+.btn-primary:hover { background: var(--teal-dark); }
+.btn-secondary { background: var(--bg); border: 1px solid var(--border); color: var(--text); }
+.btn-secondary:hover { border-color: var(--teal); }
+.btn-citation { background: var(--orange-light); color: var(--orange); border: 1px solid var(--orange); padding: 2px 8px; border-radius: 4px; font-size: 12px; cursor: pointer; margin-left: 8px; }
+.btn-citation:hover { background: var(--orange); color: white; }
+.btn-status { background: var(--teal-light); color: var(--teal); border: 1px solid var(--teal); padding: 2px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; margin-left: 8px; }
+.btn-status:hover { background: var(--teal); color: white; }
+.btn-orange { background: var(--orange); color: white; }
+.btn-orange:hover { background: #d35400; }
+
+/* Search */
+.search-box { display: flex; gap: 8px; margin-bottom: 16px; }
+.search-box input { flex: 1; }
+.search-results { margin-top: 16px; }
+.result-item {
+  padding: 16px; border: 1px solid var(--border); border-radius: var(--radius);
+  margin-bottom: 10px; background: var(--bg-card); transition: all 0.2s;
+}
+.result-item:hover { border-color: var(--teal); box-shadow: var(--shadow); }
+.result-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px; }
+.result-title { font-weight: 600; font-size: 15px; color: var(--teal-dark); }
+.result-score { font-size: 12px; color: var(--orange); background: var(--orange-light); padding: 2px 8px; border-radius: 12px; }
+.result-body { font-size: 14px; color: var(--text); line-height: 1.7; }
+.result-meta { display: flex; gap: 12px; margin-top: 8px; flex-wrap: wrap; }
+.result-meta span { font-size: 12px; color: var(--text-secondary); }
+.result-meta .category { background: var(--teal-light); color: var(--teal); padding: 1px 8px; border-radius: 10px; }
+.result-meta a { color: var(--teal); text-decoration: none; }
+.result-meta a:hover { text-decoration: underline; }
+.result-citation { margin-top: 8px; font-size: 11px; color: var(--text-secondary); font-family: monospace; word-break: break-all; }
+
+/* Continue work */
+.cw-section { margin-bottom: 20px; }
+.cw-section h4 {
+  font-size: 14px; font-weight: 600; color: var(--teal); margin-bottom: 10px;
+  padding-bottom: 6px; border-bottom: 1px solid var(--teal-light);
+  display: flex; align-items: center; gap: 6px;
+}
+.cw-section h4 .badge {
+  background: var(--teal-light); color: var(--teal); font-size: 11px;
+  padding: 1px 8px; border-radius: 10px;
+}
+.cw-item {
+  padding: 12px; border: 1px solid var(--border); border-radius: var(--radius);
+  margin-bottom: 8px; background: var(--bg);
+}
+.cw-item h5 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+.cw-item p { font-size: 13px; color: var(--text-secondary); }
+.cw-item .source-ref { font-size: 11px; color: var(--text-secondary); margin-top: 6px; font-family: monospace; }
+
+/* Empty state */
+.empty-state {
+  text-align: center; padding: 60px 20px; color: var(--text-secondary);
+}
+.empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+.empty-state h3 { font-size: 18px; color: var(--text); margin-bottom: 8px; }
+.empty-state p { font-size: 14px; max-width: 400px; margin: 0 auto; }
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 20px; right: 20px; padding: 12px 20px;
+  background: var(--teal); color: white; border-radius: var(--radius);
+  font-size: 14px; z-index: 1000; opacity: 0; transition: opacity 0.3s;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.toast.show { opacity: 1; }
+.toast.error { background: #e74c3c; }
+
+/* Mobile menu button */
+.mobile-menu {
+  display: none; position: fixed; top: 12px; left: 12px; z-index: 200;
+  background: var(--teal); color: white; border: none; border-radius: var(--radius);
+  padding: 8px 12px; cursor: pointer; font-size: 18px;
+}
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 90; }
+
+/* Loading */
+.loading { text-align: center; padding: 20px; color: var(--text-secondary); }
+.spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--teal); border-radius: 50%; animation: spin 0.6s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); }
+  .main { margin-left: 0; padding: 16px; padding-top: 56px; }
+  .mobile-menu { display: block; }
+  .overlay.show { display: block; }
+  .form-row { flex-direction: column; gap: 0; }
+  .tabs { overflow-x: auto; }
+  .tab { white-space: nowrap; padding: 10px 14px; font-size: 13px; }
+}
+</style>
+</head>
+<body>
+
+<button class="mobile-menu" onclick="toggleSidebar()">&#9776;</button>
+<div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h1><span class="icon">&#128218;</span> 研迹</h1>
+      <p>Research Desk &mdash; 研究进度记忆台</p>
+    </div>
+    <div class="sidebar-actions">
+      <button class="primary" onclick="showImportDemo()">导入演示</button>
+      <button onclick="showNewProject()">新建项目</button>
+    </div>
+    <div class="project-list" id="projectList"></div>
+  </aside>
+
+  <main class="main" id="mainContent">
+    <div class="empty-state" id="welcomeScreen">
+      <div class="icon">&#128218;</div>
+      <h3>欢迎使用研迹</h3>
+      <p>选择左侧项目开始工作，或点击"导入演示"加载示例数据体验完整功能。</p>
+      <br>
+      <button class="btn btn-primary" onclick="showImportDemo()">一键导入演示数据</button>
+    </div>
+
+    <div id="projectView" style="display:none;">
+      <div class="main-header">
+        <h2 id="projectTitle"></h2>
+        <p id="projectSummary"></p>
+      </div>
+      <div class="tabs">
+        <div class="tab active" data-tab="notes" onclick="switchTab('notes')">添加资料</div>
+        <div class="tab" data-tab="search" onclick="switchTab('search')">搜索上下文</div>
+        <div class="tab" data-tab="continue" onclick="switchTab('continue')">继续工作</div>
+      </div>
+
+      <!-- Notes tab -->
+      <div id="tab-notes" class="tab-content">
+        <div class="card">
+          <h3>添加新资料</h3>
+          <form onsubmit="addNote(event)">
+            <div class="form-row">
+              <div class="form-group">
+                <label>标题 *</label>
+                <input type="text" id="noteTitle" required placeholder="输入标题">
+              </div>
+              <div class="form-group">
+                <label>类别</label>
+                <select id="noteCategory">
+                  <option value="note">笔记</option>
+                  <option value="reference">参考资料</option>
+                  <option value="progress">进展</option>
+                  <option value="decision">决策</option>
+                  <option value="blocker">阻塞问题</option>
+                  <option value="todo">待办</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>内容 *</label>
+              <textarea id="noteBody" required placeholder="输入详细内容..."></textarea>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>出处 URL（可选）</label>
+                <input type="url" id="noteUrl" placeholder="https://...">
+              </div>
+              <div class="form-group">
+                <label>笔记 ID（可选，自动生成）</label>
+                <input type="text" id="noteId" placeholder="留空自动生成">
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary">保存到项目</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Search tab -->
+      <div id="tab-search" class="tab-content" style="display:none;">
+        <div class="search-box">
+          <input type="text" id="searchQuery" placeholder="输入关键词搜索项目上下文..." onkeydown="if(event.key==='Enter')doSearch()">
+          <button class="btn btn-primary" onclick="doSearch()">搜索</button>
+        </div>
+        <div id="searchResults" class="search-results"></div>
+      </div>
+
+      <!-- Continue work tab -->
+      <div id="tab-continue" class="tab-content" style="display:none;">
+        <div id="continueWork"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- New project modal -->
+<div id="modalOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:500;display:none;align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:12px;padding:24px;width:90%;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,0.2);">
+    <h3 style="margin-bottom:16px;color:#1a6b6a;" id="modalTitle">新建项目</h3>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+const API = '';
+let currentProject = null;
+let projects = [];
+
+function showToast(msg, isError = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isError ? ' error' : '');
+  setTimeout(() => t.className = 'toast', 3000);
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('show');
+}
+
+async function api(path, opts = {}) {
+  const res = await fetch(API + path, {
+    headers: { 'Content-Type': 'application/json' },
+    ...opts,
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail || 'API error');
+  }
+  return res.json();
+}
+
+async function loadProjects() {
+  try {
+    projects = await api('/api/projects');
+    renderProjects();
+  } catch (e) {
+    console.error('Failed to load projects:', e);
+  }
+}
+
+function renderProjects() {
+  const list = document.getElementById('projectList');
+  if (projects.length === 0) {
+    list.innerHTML = '<div style="padding:20px;text-align:center;color:#6b7c8d;font-size:13px;">暂无项目<br>点击"导入演示"或"新建项目"</div>';
+    return;
+  }
+  list.innerHTML = projects.map((p, idx) => `
+    <div class="project-item ${currentProject === p.project_id ? 'active' : ''}"
+         data-project-idx="${idx}">
+      <h3>${esc(p.title)}</h3>
+      <p>${esc(p.summary || '')}</p>
+      <div class="count">${p.note_count || 0} 条记录</div>
+    </div>
+  `).join('');
+  list.querySelectorAll('.project-item').forEach(el => {
+    el.addEventListener('click', () => {
+      const idx = parseInt(el.getAttribute('data-project-idx'), 10);
+      if (!isNaN(idx) && projects[idx]) {
+        selectProject(projects[idx].project_id);
+      }
+    });
+  });
+}
+
+async function selectProject(id) {
+  currentProject = id;
+  const p = projects.find(x => x.project_id === id);
+  if (!p) return;
+  document.getElementById('welcomeScreen').style.display = 'none';
+  document.getElementById('projectView').style.display = 'block';
+  document.getElementById('projectTitle').textContent = p.title;
+  document.getElementById('projectSummary').textContent = p.summary || '';
+  renderProjects();
+  switchTab('notes');
+  // Close sidebar on mobile
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+  document.getElementById('tab-' + name).style.display = 'block';
+  if (name === 'search') document.getElementById('searchQuery').focus();
+  if (name === 'continue') loadContinueWork();
+}
+
+async function addNote(e) {
+  e.preventDefault();
+  if (!currentProject) return;
+  const noteId = document.getElementById('noteId').value || 'note-' + Date.now();
+  try {
+    await api('/api/notes', {
+      method: 'POST',
+      body: {
+        project_id: currentProject,
+        note_id: noteId,
+        title: document.getElementById('noteTitle').value,
+        body: document.getElementById('noteBody').value,
+        category: document.getElementById('noteCategory').value,
+        url: document.getElementById('noteUrl').value || null,
+        created_at: new Date().toISOString(),
+      }
+    });
+    showToast('资料已保存');
+    document.getElementById('noteTitle').value = '';
+    document.getElementById('noteBody').value = '';
+    document.getElementById('noteUrl').value = '';
+    document.getElementById('noteId').value = '';
+    loadProjects();
+  } catch (err) {
+    showToast('保存失败: ' + err.message, true);
+  }
+}
+
+async function doSearch() {
+  if (!currentProject) return;
+  const query = document.getElementById('searchQuery').value.trim();
+  if (!query) { showToast('请输入搜索关键词', true); return; }
+  const container = document.getElementById('searchResults');
+  container.innerHTML = '<div class="loading"><div class="spinner"></div> 搜索中...</div>';
+  try {
+    const results = await api('/api/search', {
+      method: 'POST',
+      body: { project_id: currentProject, query, limit: 20 }
+    });
+    if (results.length === 0) {
+      container.innerHTML = '<div class="empty-state"><p>未找到匹配的记录</p></div>';
+      return;
+    }
+    container.innerHTML = results.map((r, i) => `
+      <div class="result-item">
+        <div class="result-header">
+          <span class="result-title">${esc(r.title || r.note_id)}</span>
+        </div>
+        <div class="result-body">${esc(r.body || r.text)}</div>
+        <div class="result-meta">
+          <span class="category">${categoryLabel(r.category)}</span>
+          ${r.url && safeUrl(r.url) ? `<a href="${safeAttr(r.url)}" target="_blank" rel="noopener">出处链接</a>` : ''}
+          ${r.created_at ? `<span>${formatDate(r.created_at)}</span>` : ''}
+          ${r.matched_by && r.matched_by.length ? `<span style="font-size:11px;color:var(--text-secondary);">匹配: ${esc(r.matched_by.join(', '))}</span>` : ''}
+          ${r.citation ? `<button class="btn-citation" data-citation-idx="${i}">查看原文</button>` : ''}
+        </div>
+      </div>
+    `).join('');
+    window._searchResults = results;
+    container.querySelectorAll('.btn-citation').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = parseInt(btn.getAttribute('data-citation-idx'), 10);
+        if (!isNaN(idx)) viewCitation(idx);
+      });
+    });
+  } catch (err) {
+    container.innerHTML = '<div class="empty-state"><p>搜索失败: ' + esc(err.message) + '</p></div>';
+  }
+}
+
+async function viewCitation(index) {
+  const r = window._searchResults[index];
+  if (!r || !r.citation) return;
+  try {
+    const entry = await api('/api/citation/get', {
+      method: 'POST',
+      body: {
+        project_id: currentProject,
+        memory_ref: r.citation.memory_ref,
+        entry_id: r.citation.entry_id,
+        entry_version_id: r.citation.entry_version_id,
+      }
+    });
+    showModal('原文详情', `
+      <div style="max-height:60vh;overflow-y:auto;">
+        <h4 style="margin-bottom:8px;">${esc(entry.title || r.title || '无标题')}</h4>
+        <div style="background:var(--teal-light);padding:12px;border-radius:var(--radius);margin-bottom:12px;">
+          <strong>分类:</strong> ${categoryLabel(entry.category || r.category)}<br>
+          <strong>来源ID:</strong> ${esc(entry.source_id || r.source_id)}
+        </div>
+        <p style="white-space:pre-wrap;">${esc(entry.body || entry.text || r.body || r.text)}</p>
+        ${entry.url && safeUrl(entry.url) ? `<p style="margin-top:12px;"><a href="${safeAttr(entry.url)}" target="_blank" rel="noopener">${esc(entry.url)}</a></p>` : ''}
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:16px;">
+        <button class="btn btn-secondary" onclick="hideModal()">关闭</button>
+      </div>
+    `);
+  } catch (err) {
+    showToast('获取引用失败: ' + err.message, true);
+  }
+}
+
+async function loadContinueWork() {
+  if (!currentProject) return;
+  const container = document.getElementById('continueWork');
+  container.innerHTML = '<div class="loading"><div class="spinner"></div> 生成继续工作清单...</div>';
+  try {
+    const data = await api(`/api/continue-work/${currentProject}`);
+    const sections = data.sections;
+    let html = `<p style="margin-bottom:16px;color:#6b7c8d;">共 ${data.total_entries} 条记录，按类别整理如下：</p>`;
+    const sectionDefs = [
+      { key: 'completed', label: '已完成', icon: '&#9989;', statusBtn: null },
+      { key: 'blocked', label: '阻塞问题', icon: '&#9888;&#65039;', statusBtn: 'done' },
+      { key: 'decisions', label: '关键决策', icon: '&#128161;', statusBtn: null },
+      { key: 'next_steps', label: '下一步', icon: '&#10145;&#65039;', statusBtn: 'done' },
+      { key: 'references', label: '参考资料', icon: '&#128214;', statusBtn: null },
+    ];
+    const allItems = [];
+    for (const def of sectionDefs) {
+      const items = sections[def.key] || [];
+      if (items.length === 0) continue;
+      html += `<div class="cw-section">
+        <h4>${def.icon} ${def.label} <span class="badge">${items.length}</span></h4>
+        ${items.map((item) => {
+          const itemIdx = allItems.length;
+          allItems.push(item);
+          return `
+          <div class="cw-item">
+            <h5>${esc(item.title)}</h5>
+            <p>${esc(item.body)}</p>
+            ${item.url && safeUrl(item.url) ? `<div class="source-ref">出处: <a href="${safeAttr(item.url)}" target="_blank" rel="noopener">${esc(item.url)}</a></div>` : ''}
+            <div class="source-ref">Source: ${esc(item.source_id)}
+              ${def.statusBtn ? `<button class="btn-status" data-status-idx="${itemIdx}" data-status-cat="${def.statusBtn}">标为${def.statusBtn === 'done' ? '已完成' : '已解决'}</button>` : ''}
+            </div>
+          </div>
+        `}).join('')}
+      </div>`;
+    }
+    window._continueWorkItems = allItems;
+    if (data.total_entries === 0) {
+      html = '<div class="empty-state"><p>该项目暂无记录，请先添加资料</p></div>';
+    }
+    container.innerHTML = html;
+    container.querySelectorAll('.btn-status').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = parseInt(btn.getAttribute('data-status-idx'), 10);
+        const cat = btn.getAttribute('data-status-cat');
+        const item = window._continueWorkItems[idx];
+        if (item && cat) {
+          updateTaskStatusFromItem(item, cat);
+        }
+      });
+    });
+  } catch (err) {
+    container.innerHTML = '<div class="empty-state"><p>加载失败: ' + esc(err.message) + '</p></div>';
+  }
+}
+
+async function updateTaskStatusFromItem(item, newCategory) {
+  const sourceId = item.source_id;
+  if (!sourceId) { showToast('无法解析来源ID', true); return; }
+  const parts = sourceId.split(':');
+  if (parts.length < 3) { showToast('无法解析来源ID', true); return; }
+  const noteId = parts.slice(2).join(':');
+  try {
+    await api('/api/tasks/update-status', {
+      method: 'POST',
+      body: { project_id: currentProject, note_id: noteId, new_category: newCategory }
+    });
+    showToast('状态已更新');
+    await loadContinueWork();
+  } catch (err) {
+    showToast('更新失败: ' + err.message, true);
+  }
+}
+
+function showImportDemo() {
+  showModal('导入演示数据', `
+    <p style="margin-bottom:16px;color:#6b7c8d;">将导入两个虚构项目及其资料记录。重复导入不会创建重复数据。</p>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button class="btn btn-secondary" onclick="hideModal()">取消</button>
+      <button class="btn btn-primary" onclick="importDemo()">确认导入</button>
+    </div>
+  `);
+}
+
+async function importDemo() {
+  hideModal();
+  showToast('正在导入演示数据...');
+  try {
+    const result = await api('/api/demo/import', { method: 'POST' });
+    const msg = `导入完成: ${result.projects_created} 个新项目, ${result.notes_imported} 条新记录` +
+      (result.notes_skipped > 0 ? `, ${result.notes_skipped} 条已存在跳过` : '');
+    showToast(msg);
+    await loadProjects();
+  } catch (err) {
+    showToast('导入失败: ' + err.message, true);
+  }
+}
+
+function showNewProject() {
+  showModal('新建项目', `
+    <form onsubmit="createProject(event)">
+      <div class="form-group">
+        <label>项目 ID *</label>
+        <input type="text" id="newProjectId" required placeholder="英文标识，如 my-research">
+      </div>
+      <div class="form-group">
+        <label>项目名称 *</label>
+        <input type="text" id="newProjectTitle" required placeholder="中文名称">
+      </div>
+      <div class="form-group">
+        <label>项目简介</label>
+        <input type="text" id="newProjectSummary" placeholder="简要描述">
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;">
+        <button type="button" class="btn btn-secondary" onclick="hideModal()">取消</button>
+        <button type="submit" class="btn btn-primary">创建</button>
+      </div>
+    </form>
+  `);
+}
+
+async function createProject(e) {
+  e.preventDefault();
+  try {
+    await api('/api/projects', {
+      method: 'POST',
+      body: {
+        project_id: document.getElementById('newProjectId').value,
+        title: document.getElementById('newProjectTitle').value,
+        summary: document.getElementById('newProjectSummary').value,
+      }
+    });
+    hideModal();
+    showToast('项目已创建');
+    await loadProjects();
+  } catch (err) {
+    showToast('创建失败: ' + err.message, true);
+  }
+}
+
+function showModal(title, bodyHtml) {
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalBody').innerHTML = bodyHtml;
+  document.getElementById('modalOverlay').style.display = 'flex';
+}
+function hideModal() {
+  document.getElementById('modalOverlay').style.display = 'none';
+}
+
+function esc(s) {
+  if (!s) return '';
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function safeAttr(s) {
+  if (!s) return '';
+  return esc(s).replace(/'/g, '&#39;').replace(/"/g, '&quot;');
+}
+
+function safeUrl(url) {
+  if (!url) return '';
+  if (typeof url !== 'string') return '';
+  if (!/^https?:\/\//i.test(url)) return '';
+  try {
+    const u = new URL(url);
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') return '';
+    return url;
+  } catch {
+    return '';
+  }
+}
+
+function categoryLabel(c) {
+  const map = { note: '笔记', reference: '参考', progress: '进展', decision: '决策', blocker: '阻塞', todo: '待办', done: '已完成', next: '下一步', excerpt: '摘录' };
+  return map[c] || c || '笔记';
+}
+
+function formatDate(s) {
+  try { return new Date(s).toLocaleString('zh-CN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }); }
+  catch { return s; }
+}
+
+// Init
+loadProjects();
+</script>
+</body>
+</html>

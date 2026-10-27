@@ -1,0 +1,43 @@
+# Virtual environment
+.venv/
+venv/
+ENV/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+uv_cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Runtime data (SQLite databases, logs)
+data/*.db
+data/*.db-journal
+data/*.db-wal
+data/*.db-shm
+*.log
+
+# Environment
+.env
+.env.local
+
+# Node (if any)
+node_modules/

@@ -1,0 +1,7 @@
+{
+  "src/research_desk/__init__.py": "122e5f2995adedde1e63d504014320947a4902531604b8bff213bb4276f95b3f",
+  "src/research_desk/demo_data.py": "8b87cbb0d07535fefd911923287ebe3023c9fe2ebb90dafc1f3bfbc7e40dd983",
+  "src/research_desk/pipeline.py": "c56fcf28274614515562bf1f9e461507f0d5a89d74be7e987fa98714e053414d",
+  "src/research_desk/runtime.py": "eb196e9f50729b441cf7fe86bbf628eb95b02829b4e5194573d2182cf807c318",
+  "src/research_desk/server.py": "e088ce5514cad51693bda88b24426d0874e9a23a67f5c9c74bbab70b16c2cecf"
+}

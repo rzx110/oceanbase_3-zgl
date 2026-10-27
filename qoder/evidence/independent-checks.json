@@ -1,0 +1,43 @@
+{
+  "verifier": "Codex independent review",
+  "timestamp_utc": "2026-10-27T13:33:35.950228+00:00",
+  "checks": [
+    {
+      "name": "official frozen SDK installed",
+      "passed": true
+    },
+    {
+      "name": "search isolated to selected project",
+      "passed": true
+    },
+    {
+      "name": "cross-project citation rejected",
+      "passed": true
+    },
+    {
+      "name": "old citation preserves old task state",
+      "passed": true
+    },
+    {
+      "name": "search returns latest task state once",
+      "passed": true
+    },
+    {
+      "name": "continue-work excludes superseded todo",
+      "passed": true
+    },
+    {
+      "name": "repeated status update preserves logical count",
+      "passed": true
+    },
+    {
+      "name": "logical record count survives restart",
+      "passed": true
+    },
+    {
+      "name": "old and new exact citations survive restart",
+      "passed": true
+    }
+  ],
+  "sdk_commit": "9db1753434162c0aa7c9f1189a1722e617880a52"
+}

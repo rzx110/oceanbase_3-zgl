@@ -1,0 +1,68 @@
+
+======================================================================
+RESEARCH DESK VERIFICATION SUITE
+======================================================================
+
+======================================================================
+SCENARIO 1: Citation isolation across status change + restart
+======================================================================
+✓ Search after update: 1 result, category=done
+✓ Old citation returns todo, source_id=note:proof:one
+✓ New citation returns done, source_id=note:proof:one:r2
+✓ Old citation still returns todo after restart
+
+✓ Scenario 1 PASSED
+
+======================================================================
+SCENARIO 2: Search deduplication — one result per logical note
+======================================================================
+✓ Search returns 1 done entry: ('one', 'done', 'note:dedup:one:r2')
+✓ limit=1 returns the done entry
+
+✓ Scenario 2 PASSED
+
+======================================================================
+SCENARIO 3: Multiple notes with same term, limit correctness
+======================================================================
+✓ limit=2 returns both notes with latest states: alpha=note, beta=done
+✓ beta source_id is latest revision (r2)
+
+✓ Scenario 3 PASSED
+
+======================================================================
+SCENARIO 4: Idempotent status update preserves note count
+======================================================================
+✓ note_count=1 after status update
+✓ Idempotent update: note_count stays at 1
+✓ After restart: note_count=1
+
+✓ Scenario 4 PASSED
+
+======================================================================
+SCENARIO 5: Cross-project isolation
+======================================================================
+✓ Each project returns 1 result with correct project_id
+✓ Both notes traceable to distinct source identities and categories
+
+✓ Scenario 5 PASSED
+
+======================================================================
+SCENARIO 6: Continue-work citation consistency
+======================================================================
+✓ Continue-work item has citation and source_id=note:cw:task1
+✓ Citation resolves to matching source identity and body
+
+✓ Scenario 6 PASSED
+
+======================================================================
+SCENARIO 7: SDK Git commit verification
+======================================================================
+  Installed commit: 9db1753434162c0aa7c9f1189a1722e617880a52
+  Frozen commit:    9db1753434162c0aa7c9f1189a1722e617880a52
+✓ SDK commit matches frozen SHA
+
+✓ Scenario 7 PASSED
+
+======================================================================
+ALL VERIFICATIONS PASSED
+======================================================================
