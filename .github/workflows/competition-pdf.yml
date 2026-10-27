@@ -1,0 +1,39 @@
+name: Competition PDF evidence
+
+on:
+  push:
+    branches: [2026-competition]
+    paths:
+      - .github/workflows/competition-pdf.yml
+      - src/powercontext/sources/pdf_pages.py
+      - src/powercontext/builtin/artifacts/memory/**
+      - tests/test_pdf_pages.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: competition-pdf-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pdf-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Build the fixed public evaluation environment
+        run: docker compose -f competition/compose.yaml build selftest
+      - name: Check PDF acceptance and Memory regressions offline
+        run: |
+          docker compose -f competition/compose.yaml run --rm \
+            -v "$PWD/tests:/candidate/tests:ro" selftest \
+            python -m pytest -q -s -c /selftest/pytest.ini \
+            --confcutdir=/candidate/tests \
+            /selftest/challenges/source-03-pdf-retrieval/acceptance \
+            /candidate/tests/test_pdf_pages.py \
+            /candidate/tests/builtin/artifacts/memory/test_canonical.py

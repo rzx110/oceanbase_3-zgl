@@ -27,7 +27,7 @@ from itertools import pairwise
 from typing import Annotated, Protocol
 
 from pydantic import BaseModel, Field, field_validator
-from pypdf import PdfReader
+from pypdf import PageObject, PdfReader
 
 from powercontext.builtin.artifacts.memory.models import MemoryCitation, MemoryHit
 from powercontext.builtin.runtime.models import (
@@ -40,10 +40,6 @@ from powercontext.builtin.runtime.models import (
 from powercontext.sources.definitions import SourceDefinition, SourceProjection
 from powercontext.sources.models import Source, SourceMaterialization, SourceRef
 from powercontext.sources.projections import TEXT_EVIDENCE_PROJECTION_KEY, TextEvidence
-
-# The PDF feature is deliberately paused while other competition work proceeds.
-# Keep the implementation intact; change this switch to restore normal behavior.
-PDF_PROCESSING_ENABLED: bool = False
 
 
 class PDFDocumentInput(BaseModel):
@@ -80,29 +76,97 @@ def _validate_document_id(value: str) -> None:
         raise ValueError("PDF document_id must not be blank")  # noqa: TRY003
 
 
-def _require_pdf_processing() -> None:
-    if not PDF_PROCESSING_ENABLED:
-        raise NotImplementedError("PDF page processing is temporarily disabled")
+_SPLIT_YEAR = re.compile(r"(?<!\d)((?:19|20)\d?)[ \t]*\n[ \t]*(\d{1,2})(?!\d)")
+_FULL_YEAR = re.compile(r"(?<!\d)(?:19|20)\d{2}(?!\d)")
+_SPLIT_NOTE = re.compile(r"(?i)\b(note|item)([ \t\n]+)(\d{1,2})[ \t]*\n[ \t]*(\d)([ \t\n]*\.)")
+_FULL_NOTE = re.compile(r"(?i)\b(?:note|item)\s+(\d{1,3})\s*\.")
+_SPLIT_WORD = re.compile(r"(?<![a-zA-Z])([a-zA-Z]{3,})[ \t]*(?:\n[ \t]*)+([b-hj-zB-HJ-Z])(?![a-zA-Z])")
+_FULL_WORD = re.compile(r"[a-zA-Z]+")
+
+
+def _repair_broken_tokens(plain: str, layout: str, document_words: set[str]) -> str:
+    """Join split tokens only when the same page's layout confirms them.
+
+    Some PDF producers draw the last digit separately at the same baseline;
+    plain extraction treats it as a new line. Count differences bound the
+    repair and retain every other character from the complete plain extraction.
+    """
+    missing_years = Counter(_FULL_YEAR.findall(layout)) - Counter(_FULL_YEAR.findall(plain))
+
+    def year(match: re.Match[str]) -> str:
+        joined = match.group(1) + match.group(2)
+        if len(joined) != 4 or not missing_years[joined]:
+            return match.group()
+        missing_years[joined] -= 1
+        return joined
+
+    repaired = _SPLIT_YEAR.sub(year, plain)
+    missing_notes = Counter(_FULL_NOTE.findall(layout)) - Counter(_FULL_NOTE.findall(repaired))
+
+    def note(match: re.Match[str]) -> str:
+        joined = match.group(3) + match.group(4)
+        if not missing_notes[joined]:
+            return match.group()
+        missing_notes[joined] -= 1
+        return match.group(1) + match.group(2) + joined + match.group(5)
+
+    repaired = _SPLIT_NOTE.sub(note, repaired)
+    missing_words = Counter(word.lower() for word in _FULL_WORD.findall(layout)) - Counter(
+        word.lower() for word in _FULL_WORD.findall(repaired)
+    )
+
+    def word(match: re.Match[str]) -> str:
+        left, right = match.group(1), match.group(2)
+        joined = left + right
+        if missing_words[joined.lower()]:
+            missing_words[joined.lower()] -= 1
+            return joined
+        # Some PDFs cause even the layout extractor to insert one space
+        # between adjacent glyphs. Only repair that case when this is a known
+        # word elsewhere in the same document and both pieces share a line.
+        same_line = re.search(
+            r"(?<![a-z])" + re.escape(left.lower()) + r"[ \t]+" + re.escape(right.lower()) + r"(?![a-z])",
+            layout.lower(),
+        )
+        if joined.lower() not in document_words or same_line is None:
+            return match.group()
+        return joined
+
+    return _SPLIT_WORD.sub(word, repaired)
+
+
+def _extract_page_text(page: PageObject, plain: str, document_words: set[str]) -> str:
+    if not (_SPLIT_YEAR.search(plain) or _SPLIT_NOTE.search(plain) or _SPLIT_WORD.search(plain)):
+        return plain
+    try:
+        layout = page.extract_text(extraction_mode="layout", layout_mode_strip_rotated=False) or ""
+    except Exception:
+        # The layout pass is corroboration only; the full plain text remains
+        # the authoritative fallback, including any rotated content.
+        return plain
+    return _repair_broken_tokens(plain, layout, document_words)
 
 
 def parse_pdf_document(value: PDFDocumentInput) -> tuple[PDFPageInput, ...]:
     """Extract every page atomically using the shared, locked PDF parser."""
 
-    _require_pdf_processing()
     _validate_document_id(value.document_id)
     digest = hashlib.sha256(value.content).hexdigest()
     try:
         reader = PdfReader(io.BytesIO(value.content), strict=True)
         if reader.is_encrypted and not reader.decrypt(""):
             raise ValueError("PDF cannot be opened without a user password")  # noqa: TRY003, TRY301
+        page_objects = tuple(reader.pages)
+        plain_pages = tuple(page.extract_text() or "" for page in page_objects)
+        document_words = {word.lower() for plain in plain_pages for word in _FULL_WORD.findall(plain)}
         return tuple(
             PDFPageInput(
                 document_id=value.document_id,
                 document_sha256=digest,
                 page_number=number,
-                text=page.extract_text() or "",
+                text=_extract_page_text(page, plain, document_words),
             )
-            for number, page in enumerate(reader.pages, start=1)
+            for number, (page, plain) in enumerate(zip(page_objects, plain_pages, strict=True), start=1)
         )
     except Exception as error:
         raise ValueError("PDF could not be completely parsed") from error  # noqa: TRY003
@@ -358,17 +422,42 @@ def _company_candidates(hits: Sequence[MemoryHit], question: str) -> tuple[Memor
     """Prefer explicitly named report issuers when several reports share a scope."""
 
     matched: list[MemoryHit] = []
+    matched_documents: dict[str, bool] = {}
     for hit in hits:
         document_id = hit.text.partition("\n")[0]
-        prefix = re.split(r"(?:19|20)\d{2}", document_id, maxsplit=1)[0]
-        issuer = re.sub(r"[^a-z0-9]", "", prefix.lower())
-        # Preserve short and alphanumeric issuer names. Whole-name boundaries
-        # avoid matching a short name inside an unrelated word, while optional
-        # separators accept spaces and hyphens in the natural-language question.
-        if len(issuer) < 2 or not re.search(r"[a-z]", issuer):
-            continue
-        pattern = r"(?<![a-z0-9])" + r"[\W_]*".join(map(re.escape, issuer)) + r"(?![a-z0-9])"
-        if re.search(pattern, question.lower()):
+        if document_id not in matched_documents:
+            prefix = re.split(r"(?:19|20)\d{2}", document_id, maxsplit=1)[0]
+            issuer = re.sub(r"[^a-z0-9]", "", prefix.lower())
+            aliases = [issuer]
+            # Reports can use either the legal issuer name or its common name.
+            # A match on one revision must not exclude another solely because
+            # its document ID adds a corporate suffix.
+            for suffix in (
+                "incorporated",
+                "corporation",
+                "holdings",
+                "holding",
+                "company",
+                "limited",
+                "corp",
+                "inc",
+                "ltd",
+                "llc",
+                "plc",
+            ):
+                if issuer.endswith(suffix) and len(issuer) - len(suffix) >= 3:
+                    aliases.append(issuer[: -len(suffix)])
+            matched_documents[document_id] = any(
+                len(alias) >= 2
+                and re.search(r"[a-z]", alias) is not None
+                and re.search(
+                    r"(?<![a-z0-9])" + r"[\W_]*".join(map(re.escape, alias)) + r"(?![a-z0-9])",
+                    question.lower(),
+                )
+                is not None
+                for alias in aliases
+            )
+        if matched_documents[document_id]:
             matched.append(hit)
     return tuple(matched) if matched else tuple(hits)
 
@@ -400,7 +489,6 @@ def _page_candidates(records: MemoryEntriesPage) -> dict[tuple[str, int, str, st
 async def search_pdf_pages(memory: _ScopedPDFMemory, question: str, limit: int = 10) -> tuple[MemoryCitation, ...]:
     """Search real scoped Memory, then rank and verify distinct exact page citations."""
 
-    _require_pdf_processing()
     if not isinstance(limit, int) or isinstance(limit, bool):
         raise ValueError("PDF search limit must be an integer")  # noqa: TRY003, TRY004
     if limit <= 0 or not question.strip():

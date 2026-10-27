@@ -109,6 +109,7 @@ from powercontext.builtin.inference import (
 )
 from powercontext.builtin.tags import TagFilter
 from powercontext.errors import RevisionConflictError
+from powercontext.limits import MAX_SOURCE_OBSERVATION_BYTES
 from powercontext.sources import (
     TEXT_EVIDENCE_PROJECTION_KEY,
     Source,
@@ -1654,11 +1655,24 @@ class MemoryService:
             sources = (*previous.sources, *candidate_source_refs)
             artifacts = (*previous.artifacts, *candidate_artifacts)
         try:
+            # A complete captured PDF page can exceed the ordinary Memory body
+            # limit. Admit it only when it is the exact projection of its single
+            # authorized page; arbitrary entries keep the original limit.
+            allow_pdf_page = (
+                previous is None
+                and len(candidate_sources) == len(sources) == 1
+                and sources[0].source_type == "pdf-page"
+                and not artifacts
+                and (content := _source_gate_content(candidate_sources[0], self._source_resolver)) is not None
+                and normalize_text(content, max_bytes=MAX_SOURCE_OBSERVATION_BYTES)
+                == normalize_text(candidate.text, max_bytes=MAX_SOURCE_OBSERVATION_BYTES)
+            )
             return self._entry_material(
                 kind=candidate.kind,
                 text=candidate.text,
                 sources=sources,
                 artifacts=artifacts,
+                allow_pdf_page=allow_pdf_page,
             )
         except (TypeError, ValueError) as error:
             raise InvalidMemoryCandidateError(
@@ -1706,6 +1720,9 @@ class MemoryService:
             text=version.text,
             sources=version.sources,
             artifacts=version.artifacts,
+            allow_pdf_page=(
+                len(version.sources) == 1 and version.sources[0].source_type == "pdf-page" and not version.artifacts
+            ),
         )
 
     def _entry_material(
@@ -1715,9 +1732,11 @@ class MemoryService:
         text: str,
         sources: Sequence[SourceRef],
         artifacts: Sequence[ArtifactRef],
+        allow_pdf_page: bool = False,
     ) -> _EntryMaterial:
         normalized_kind = normalize_kind(kind)
-        normalized_text = normalize_text(text)
+        max_text_bytes = MAX_SOURCE_OBSERVATION_BYTES if allow_pdf_page else 8192
+        normalized_text = normalize_text(text, max_bytes=max_text_bytes)
         canonical_sources = _canonical_source_refs(sources)
         canonical_artifacts = _canonical_artifact_refs(artifacts)
         source_refs = tuple(source.model_dump(mode="json") for source in canonical_sources)
@@ -1727,6 +1746,7 @@ class MemoryService:
             text=normalized_text,
             source_refs=source_refs,
             artifact_refs=artifact_refs,
+            max_text_bytes=max_text_bytes,
         )
         return _EntryMaterial(
             kind=normalized_kind,
@@ -1739,6 +1759,7 @@ class MemoryService:
                 text=normalized_text,
                 source_refs=source_refs,
                 artifact_refs=artifact_refs,
+                max_text_bytes=max_text_bytes,
             ),
         )
 
@@ -1824,7 +1845,7 @@ def _raise_if_write_held(plan: MemoryWritePlan) -> None:
 
 
 def _bounded_gate_evidence(identity: str, content: str) -> _GateEvidenceEntry:
-    normalized = normalize_text(content)
+    normalized = normalize_query(content)
     return _GateEvidenceEntry(
         text=f"{identity}\n{normalized[:_GATE_EVIDENCE_TEXT_LIMIT]}",
         complete=len(normalized) <= _GATE_EVIDENCE_TEXT_LIMIT,

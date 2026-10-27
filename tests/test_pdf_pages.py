@@ -25,6 +25,7 @@ from pypdf import PdfWriter
 from pypdf.generic import DecodedStreamObject, DictionaryObject, NameObject
 
 from powercontext.builtin.artifacts.memory import MemoryEntryInput
+from powercontext.builtin.artifacts.memory.errors import InvalidMemoryCandidateError
 from powercontext.builtin.persistence.sqlite import SQLiteConfig
 from powercontext.builtin.runtime import (
     BuiltinConfig,
@@ -39,6 +40,7 @@ from powercontext.sources import (
     SourceDefinitionRegistry,
     SourceMaterialization,
     manifest_for_definition,
+    pdf_pages,
     project_source_for_transport,
 )
 from powercontext.sources.pdf_pages import (
@@ -117,6 +119,55 @@ def test_passwordless_permissions_are_accepted_but_password_required_files_fail(
     assert len(parse_pdf_document(PDFDocumentInput(document_id="open", content=_pdf("readable", password="")))) == 1
     with pytest.raises(ValueError):
         parse_pdf_document(PDFDocumentInput(document_id="locked", content=_pdf("secret", password="required")))  # noqa: S106
+
+
+def test_split_numbers_are_joined_only_when_the_same_page_confirms_them(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Preserve plain page content while repairing the observed pypdf line break."""
+    plain = "Statement of Incom\n \ne. Year 201\n5, prior year 201\n5. Note 1\n1\n. Table cells 20\n14."
+    layout = "Statement of Income. Year 2015, prior year 201 5. Note 11. Table cells 20 14."
+
+    class Page:
+        def extract_text(self, **kwargs: object) -> str:
+            return layout if kwargs.get("extraction_mode") == "layout" else plain
+
+    class Reader:
+        is_encrypted = False
+        pages = (Page(),)
+
+        def __init__(self, *_args: object, **_kwargs: object) -> None:
+            pass
+
+    monkeypatch.setattr(pdf_pages, "PdfReader", Reader)
+    page = parse_pdf_document(PDFDocumentInput(document_id="issuer", content=_pdf("valid")))[0]
+    assert page.text == "Statement of Income. Year 2015, prior year 201\n5. Note 11\n. Table cells 20\n14."
+
+
+def test_split_heading_letters_use_layout_and_document_context(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Handle the separate last glyphs observed in real report headings."""
+
+    class Page:
+        def __init__(self, plain: str, layout: str) -> None:
+            self.plain, self.layout = plain, layout
+
+        def extract_text(self, **kwargs: object) -> str:
+            return self.layout if kwargs.get("extraction_mode") == "layout" else self.plain
+
+    class Reader:
+        is_encrypted = False
+        pages = (
+            Page("Statement of Incom\n \ne. Net income 400.", "Statement of Incom e. Net income 400."),
+            Page("Balance Shee\n \nt.", "Balance Shee t."),
+            Page("Notes about the balance sheet.", "Notes about the balance sheet."),
+        )
+
+        def __init__(self, *_args: object, **_kwargs: object) -> None:
+            pass
+
+    monkeypatch.setattr(pdf_pages, "PdfReader", Reader)
+    pages = parse_pdf_document(PDFDocumentInput(document_id="issuer", content=_pdf("valid")))
+    assert pages[0].text == "Statement of Income. Net income 400."
+    assert pages[1].text == "Balance Sheet."
+    assert pages[2].text == "Notes about the balance sheet."
 
 
 @pytest.mark.parametrize(
@@ -285,3 +336,95 @@ async def test_short_alphanumeric_issuer_is_not_lost_among_other_reports(tmp_pat
         retrieved = [(await memory.get(GetMemoryEntryRequest(citation=citation))).entry for citation in citations]
         assert retrieved
         assert any(entry.sources[0].source_id == target_id for entry in retrieved)
+
+
+async def test_company_legal_suffix_does_not_hide_its_pages(tmp_path: Path) -> None:
+    """A common issuer name must find its report even when the ID has a legal suffix."""
+    registry = SourceDefinitionRegistry((PDF_PAGE_SOURCE_DEFINITION,))
+    documents = {
+        "VERIDIAN_INC_2024_10K": _pdf("Statement of operations. Operating income 26. Net sales 400."),
+        "VERIDIAN_2023_10K": _pdf(
+            *(
+                "Veridian was a customer. Operating income, earnings, revenue. "
+                + "Veridian operating income and revenue. " * 8
+                + f"Record {number}."
+                for number in range(30)
+            )
+        ),
+    }
+    observations = []
+    target_id = ""
+    for document_id, raw in documents.items():
+        for page in parse_pdf_document(PDFDocumentInput(document_id=document_id, content=raw)):
+            source = await registry.resolve(page)
+            observations.append(project_source_for_transport(registry, source))
+            if document_id == "VERIDIAN_INC_2024_10K":
+                target_id = source.name
+    config = BuiltinConfig(database=SQLiteConfig(url=f"sqlite+aiosqlite:///{tmp_path / 'legal-suffix.db'}"))
+    async with open_builtin_runtime(config, candidate_pipeline=_PagePipeline()) as runtime:
+        assert runtime.scopes is not None
+        scope = await runtime.scopes.create(ScopeDraft(title="Reports", summary="Issuers", idempotency_key="suffix"))
+        await runtime.ingestion.register(manifest_for_definition(PDF_PAGE_SOURCE_DEFINITION))
+        for observation in observations:
+            await runtime.ingestion.submit(SubmitSourceObservation(scope_id=scope.scope_id, observation=observation))
+        memory = runtime.memory.for_scope(scope.scope_id)
+        for _ in observations:
+            if not (await memory.flush()).processed:
+                break
+    async with open_builtin_runtime(config) as runtime:
+        memory = runtime.memory.for_scope(scope.scope_id)
+        citations = await search_pdf_pages(memory, "What is Veridian's operating income in FY2024?", limit=20)
+        entries = [(await memory.get(GetMemoryEntryRequest(citation=citation))).entry for citation in citations]
+        assert any(entry.sources[0].source_id == target_id for entry in entries)
+
+
+async def test_long_pdf_page_is_persisted_and_cited_without_truncation(tmp_path: Path) -> None:
+    """A full captured PDF page may exceed the ordinary Memory entry size."""
+    text = "operating cash flows detailed notes and commitments " * 220 + "unique ultraviolet commitment"
+    pages = parse_pdf_document(PDFDocumentInput(document_id="LONG_REPORT_2024", content=_pdf(text)))
+    registry = SourceDefinitionRegistry((PDF_PAGE_SOURCE_DEFINITION,))
+    source = await registry.resolve(pages[0])
+    observation = project_source_for_transport(registry, source)
+    projection = observation.projection(TEXT_EVIDENCE_PROJECTION_KEY)
+    assert isinstance(projection, dict) and isinstance(projection["content"], str)
+    expected = projection["content"].strip()
+    assert len(expected.encode("utf-8")) > 8192
+    config = BuiltinConfig(database=SQLiteConfig(url=f"sqlite+aiosqlite:///{tmp_path / 'long-page.db'}"))
+    async with open_builtin_runtime(config) as runtime:
+        assert runtime.scopes is not None
+        scope = await runtime.scopes.create(ScopeDraft(title="Long page", summary="PDF", idempotency_key="long"))
+        await runtime.ingestion.register(manifest_for_definition(PDF_PAGE_SOURCE_DEFINITION))
+        await runtime.ingestion.submit(SubmitSourceObservation(scope_id=scope.scope_id, observation=observation))
+    async with open_builtin_runtime(config, candidate_pipeline=_PagePipeline()) as runtime:
+        assert (await runtime.memory.for_scope(scope.scope_id).flush()).processed
+    async with open_builtin_runtime(config) as runtime:
+        memory = runtime.memory.for_scope(scope.scope_id)
+        citations = await search_pdf_pages(memory, "unique ultraviolet commitment", limit=20)
+        assert len(citations) == 1
+        entry = (await memory.get(GetMemoryEntryRequest(citation=citations[0]))).entry
+        assert entry.text == expected
+        assert entry.sources[0].source_id == source.name
+
+
+async def test_long_pdf_memory_exception_requires_exact_source_text(tmp_path: Path) -> None:
+    class AlteredPagePipeline:
+        async def extract(self, request, /) -> tuple[MemoryEntryInput, ...]:
+            source = request.sources[0]
+            projection = source.projection(TEXT_EVIDENCE_PROJECTION_KEY)
+            assert isinstance(projection, dict) and isinstance(projection["content"], str)
+            return (
+                MemoryEntryInput(kind="source-evidence", text=projection["content"] + " modified", sources=(source,)),
+            )
+
+    raw = _pdf("real page content " * 700)
+    page = parse_pdf_document(PDFDocumentInput(document_id="report", content=raw))[0]
+    registry = SourceDefinitionRegistry((PDF_PAGE_SOURCE_DEFINITION,))
+    observation = project_source_for_transport(registry, await registry.resolve(page))
+    config = BuiltinConfig(database=SQLiteConfig(url=f"sqlite+aiosqlite:///{tmp_path / 'altered.db'}"))
+    async with open_builtin_runtime(config, candidate_pipeline=AlteredPagePipeline()) as runtime:
+        assert runtime.scopes is not None
+        scope = await runtime.scopes.create(ScopeDraft(title="PDF", summary="PDF", idempotency_key="altered"))
+        await runtime.ingestion.register(manifest_for_definition(PDF_PAGE_SOURCE_DEFINITION))
+        await runtime.ingestion.submit(SubmitSourceObservation(scope_id=scope.scope_id, observation=observation))
+        with pytest.raises(InvalidMemoryCandidateError, match="8192"):
+            await runtime.memory.for_scope(scope.scope_id).flush()

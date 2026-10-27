@@ -78,11 +78,11 @@ def canonical_json(value: object) -> bytes:
     return rfc8785.dumps(_validated_json(value))
 
 
-def normalize_text(value: str) -> str:
+def normalize_text(value: str, *, max_bytes: int = 8192) -> str:
     """Normalize and validate one durable entry body."""
 
     normalized = _normalize_non_empty_string(value, "memory entry text")
-    if len(normalized.encode("utf-8")) > 8192:
+    if len(normalized.encode("utf-8")) > max_bytes:
         raise _CanonicalValueError("text-too-long")
     return normalized
 
@@ -155,12 +155,13 @@ def entry_content_bytes(
     text: str,
     source_refs: Sequence[object],
     artifact_refs: Sequence[object],
+    max_text_bytes: int = 8192,
 ) -> bytes:
     """Return canonical content bytes for an immutable entry version."""
 
     return canonical_json({
         "kind": normalize_kind(kind),
-        "text": normalize_text(text),
+        "text": normalize_text(text, max_bytes=max_text_bytes),
         "source_refs": normalize_refs(source_refs),
         "artifact_refs": normalize_refs(artifact_refs),
     })
@@ -172,6 +173,7 @@ def entry_content_hash(
     text: str,
     source_refs: Sequence[object],
     artifact_refs: Sequence[object],
+    max_text_bytes: int = 8192,
 ) -> str:
     """Hash canonical entry content with the Memory domain separator."""
 
@@ -180,6 +182,7 @@ def entry_content_hash(
         text=text,
         source_refs=source_refs,
         artifact_refs=artifact_refs,
+        max_text_bytes=max_text_bytes,
     )
     return sha256(_ENTRY_HASH_DOMAIN + content).hexdigest()
 
