@@ -1,0 +1,213 @@
+Browser tab: 897500277, Title: "编排 · 会记仇的奇物当铺 - Dify", URL: "https://cloud.dify.ai/app/0af47a97-849f-4918-80e9-563bf1e1b256/workflow".
+0 AXWebArea 编排 · 会记仇的奇物当铺 - Dify, URL: cloud.dify.ai/app/0af47a97-849f-4918-80e9-563bf1e1b256/workflow
+	1 container
+		224 link Description: 跳转到主要内容, Value: cloud.dify.ai/app/0af47a97-849f-4918-80e9-563bf1e1b256/workflow#main-content
+		225 link Description: 主页, Value: cloud.dify.ai/
+		226 text /
+		227 link Description: 工作室, Value: cloud.dify.ai/apps
+		228 pop up button (collapsed) Description: 搜索任何内容, ID: base-ui-_r_2i_, Secondary Actions: Expand
+		229 button Description: 收起侧边栏, ID: base-ui-_r_2l_
+		230 text ☂️
+		231 text 会记仇的奇物当铺
+		232 pop up button (collapsed) Description: 会记仇的奇物当铺 的更多操作, ID: base-ui-_r_44_, Secondary Actions: Expand
+		233 text 工作流
+		234 container
+			235 link Description: 编排, Value: cloud.dify.ai/app/0af47a97-849f-4918-80e9-563bf1e1b256/workflow
+			236 link Description: 访问点, Value: cloud.dify.ai/app/0af47a97-849f-4918-80e9-563bf1e1b256/access-point
+			237 link Description: 日志, Value: cloud.dify.ai/app/0af47a97-849f-4918-80e9-563bf1e1b256/logs
+			238 link Description: 监测, Value: cloud.dify.ai/app/0af47a97-849f-4918-80e9-563bf1e1b256/overview
+		239 pop up button (collapsed) Dify 账户, Help: Dify, ID: base-ui-_r_2p_, Secondary Actions: Expand
+			240 text Dify
+			241 text 账户
+		242 pop up button (collapsed) Description: 打开帮助菜单, ID: base-ui-_r_2u_, Secondary Actions: Expand
+		243 container workflow-container
+			244 container
+				245 pop up button (collapsed) Description: 添加节点, ID: base-ui-_r_4b_, Secondary Actions: Expand
+				246 button Description: 添加注释, ID: base-ui-_r_4e_
+				247 checkbox Description: 指针模式, Value: 1, ID: base-ui-_r_4g_
+				248 checkbox Description: 手模式, Value: 0, ID: base-ui-_r_4j_
+				249 button Description: 整理节点, ID: base-ui-_r_4m_
+				250 pop up button (collapsed) Description: 更多操作, ID: base-ui-_r_4r_, Secondary Actions: Expand
+			251 container
+				252 button (disabled) Description: 撤销, ID: base-ui-_r_4v_
+				253 button (disabled) Description: 重做, ID: base-ui-_r_51_
+				254 pop up button (collapsed) Description: 变更历史, ID: base-ui-_r_54_, Secondary Actions: Expand
+				557 text 查看缓存 清除
+				256 image React Flow mini map
+				257 button Description: 缩小, ID: base-ui-_r_57_
+				258 pop up button (collapsed) 48%, ID: base-ui-_r_5b_, Secondary Actions: Expand
+				259 button Description: 放大, ID: base-ui-_r_5e_
+			260 container
+				261 container 工作流保存状态
+					262 text 自动保存
+					263 text 08:50:09
+					264 text 未发布
+				558 button 测试运行 Alt R
+					559 text 测试运行
+					560 text Alt
+					561 text R
+				269 pop up button (collapsed) Description: 查看运行历史, ID: base-ui-_r_5p_, Secondary Actions: Expand
+				270 pop up button (collapsed) Description: 检查清单, ID: base-ui-_r_5r_, Secondary Actions: Expand
+				271 button (collapsed) Description: 环境变量, Secondary Actions: Expand
+				272 button (collapsed) Description: 系统变量, Secondary Actions: Expand
+				273 pop up button (collapsed) 发布, ID: base-ui-_r_5t_, Secondary Actions: Expand
+				274 button Description: 版本历史, ID: base-ui-_r_5v_
+			600 container
+				601 splitter Description: 测试运行, Value: 400
+				602 text Test Run (08:50:14)
+				603 button 关闭
+				604 text 输入
+				605 text 结果
+				606 text 详情
+				607 text 追踪
+				608 container
+					609 text 状态
+					610 text SUCCESS
+					611 text 运行时间
+					612 text 3.425s
+					613 text 总 TOKEN 数
+					614 text 1062 Tokens
+					615 text 输入
+					616 container
+						617 button 复制
+						618 button 展开
+					619 container
+						620 container
+							621 editor Editor content
+						622 button 调整编辑器尺寸
+						623 text 高度：172 像素 使用上下方向键调整高度，按住 Shift 加速。Home 或 Enter 恢复最小高度。
+					624 text 输出
+					625 container
+						626 button 复制
+						627 button 展开
+					628 container
+						629 container
+							630 editor Editor content
+						631 button 调整编辑器尺寸
+						632 text 高度：172 像素 使用上下方向键调整高度，按住 Shift 加速。Home 或 Enter 恢复最小高度。
+					633 text 元数据
+					634 text 状态
+					635 text SUCCESS
+					636 text 执行人
+					637 text Dify
+					638 text 开始时间
+					639 text 2026-10-28 08:50:10
+					640 text 运行时间
+					641 text 3.425s
+					642 text 总 token 数
+					643 text 1062 Tokens
+					644 text 运行步数
+					645 text 9
+			275 container
+				276 container
+					277 image
+						278 button Edge from start to read_memory
+						279 button Edge from read_memory to plan
+						280 button Edge from plan to branch
+						281 button Edge from branch to recall_end
+						282 button Edge from branch to narrator
+						283 button Edge from narrator to payload
+						284 button Edge from payload to write_memory
+						285 button Edge from write_memory to feedback
+						286 button Edge from feedback to end
+					287 pop up button (collapsed) Description: 添加节点, ID: base-ui-_r_8i_, Secondary Actions: Expand
+					288 pop up button (collapsed) Description: 添加节点, ID: base-ui-_r_8k_, Secondary Actions: Expand
+					289 pop up button (collapsed) Description: 添加节点, ID: base-ui-_r_8m_, Secondary Actions: Expand
+					290 pop up button (collapsed) Description: 添加节点, ID: base-ui-_r_8o_, Secondary Actions: Expand
+					291 pop up button (collapsed) Description: 添加节点, ID: base-ui-_r_8q_, Secondary Actions: Expand
+					292 pop up button (collapsed) Description: 添加节点, ID: base-ui-_r_8s_, Secondary Actions: Expand
+					293 pop up button (collapsed) Description: 添加节点, ID: base-ui-_r_8u_, Secondary Actions: Expand
+					294 pop up button (collapsed) Description: 添加节点, ID: base-ui-_r_90_, Secondary Actions: Expand
+					295 pop up button (collapsed) Description: 添加节点, ID: base-ui-_r_92_, Secondary Actions: Expand
+					296 button 开始 添加节点 推开当铺的门 player_code 必填 item 必填 action 必填 utterance
+						297 text 开始
+						298 container
+							589 pop up button (collapsed) Description: 添加节点, ID: base-ui-_r_qq_, Secondary Actions: Expand
+							300 button 推开当铺的门
+								301 text 推开当铺的门
+							302 text player_code 必填
+							303 image
+							304 text item 必填
+							305 image
+							306 text action 必填
+							307 image
+							308 text utterance
+							309 image
+					310 button 添加节点 翻开 PowerContext 记忆账本 GET BACKEND_URL /v1/state
+						311 container
+							590 pop up button (collapsed) Description: 添加节点, ID: base-ui-_r_qs_, Secondary Actions: Expand
+							313 button 翻开 PowerContext 记忆账本
+								314 text 翻开 POWERCONTEXT 记忆账本
+							315 text GET
+							316 text BACKEND_URL
+							317 text /v1/state
+					318 button 添加节点 按真实旧账决定反应与分数
+						319 container
+							591 pop up button (collapsed) Description: 添加节点, ID: base-ui-_r_qu_, Secondary Actions: Expand
+							321 button 按真实旧账决定反应与分数
+								322 text 按真实旧账决定反应与分数
+					323 button 只翻旧账，还是继续互动？ IF 添加节点 推开当铺的门 / action 是 recall ELSE 添加节点
+						324 container
+							325 button 只翻旧账，还是继续互动？
+								326 text 只翻旧账，还是继续互动？
+							327 text IF
+							592 pop up button (collapsed) Description: 添加节点, ID: base-ui-_r_r0_, Secondary Actions: Expand
+							329 text 推开当铺的门
+							330 text /
+							331 text action
+							332 text 是
+							333 text recall
+							334 text ELSE
+							593 pop up button (collapsed) Description: 添加节点, ID: base-ui-_r_r2_, Secondary Actions: Expand
+					336 button 添加节点 旧账只读，不增加轮次 按真实旧账决定反应与分数 / recall_reply String 按真实旧账决定反应与分数 / memory_source String
+						337 container
+							594 pop up button (collapsed) Description: 添加节点, ID: base-ui-_r_r4_, Secondary Actions: Expand
+							339 button 旧账只读，不增加轮次
+								340 text 旧账只读，不增加轮次
+							341 container
+								342 text 按真实旧账决定反应与分数 / recall_reply String
+							343 container
+								344 text 按真实旧账决定反应与分数 / memory_source String
+					345 button 添加节点 让奇物开口说话 模型设置 异常时 输出默认值
+						346 container
+							595 pop up button (collapsed) Description: 添加节点, ID: base-ui-_r_rb_, Secondary Actions: Expand
+							349 button 让奇物开口说话
+								350 text 让奇物开口说话
+							351 pop up button (disabled, collapsed) Description: 模型设置, ID: base-ui-_r_7j_, Secondary Actions: Expand
+								352 text gpt-4o-mini
+								353 text CHAT
+							354 container
+								355 text 异常时 输出默认值
+					356 button 添加节点 组装幂等的记忆写入
+						357 container
+							596 pop up button (collapsed) Description: 添加节点, ID: base-ui-_r_rd_, Secondary Actions: Expand
+							359 button 组装幂等的记忆写入
+								360 text 组装幂等的记忆写入
+					361 button 添加节点 将本轮真正写入 PowerContext POST BACKEND_URL /v1/interactions
+						362 container
+							597 pop up button (collapsed) Description: 添加节点, ID: base-ui-_r_rf_, Secondary Actions: Expand
+							364 button 将本轮真正写入 PowerContext
+								365 text 将本轮真正写入 POWERCONTEXT
+							366 text POST
+							367 text BACKEND_URL
+							368 text /v1/interactions
+					369 button 添加节点 展示反应、分数与可回查记忆
+						370 container
+							598 pop up button (collapsed) Description: 添加节点, ID: base-ui-_r_rh_, Secondary Actions: Expand
+							372 button 展示反应、分数与可回查记忆
+								373 text 展示反应、分数与可回查记忆
+					374 button 添加节点 这一轮结束，下次还能记得 展示反应、分数与可回查记忆 / reply String 展示反应、分数与可回查记忆 / memory_source String
+						375 container
+							599 pop up button (collapsed) Description: 添加节点, ID: base-ui-_r_rj_, Secondary Actions: Expand
+							377 button 这一轮结束，下次还能记得
+								378 text 这一轮结束，下次还能记得
+							379 container
+								380 text 展示反应、分数与可回查记忆 / reply String
+							381 container
+								382 text 展示反应、分数与可回查记忆 / memory_source String
+				383 image
+				384 link Description: React Flow attribution, Value: reactflow.dev/
+		393 text 编排 · 应用详情 - Dify
+		223 container Notifications
+
+The focused UI element is 626 button 复制

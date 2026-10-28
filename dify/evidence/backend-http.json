@@ -1,0 +1,760 @@
+{
+  "kind": "real-backend-http-verification",
+  "result": "passed",
+  "dify_execution": false,
+  "checks": {
+    "empty_start": true,
+    "idempotent_retry": true,
+    "graceful_process_restart": true,
+    "history_reused": true,
+    "apology_and_gift_change_outcome": true,
+    "secret_unlock": true,
+    "exact_old_source_readback": true,
+    "player_isolation": true
+  },
+  "requests": [
+    {
+      "method": "GET",
+      "path": "/v1/state",
+      "params": {
+        "player_code": "backend_review",
+        "item": "umbrella"
+      },
+      "request_body": null,
+      "response": {
+        "state": {
+          "turn": 0,
+          "trust": 0,
+          "grudge": 0,
+          "pranks": 0,
+          "gifts": 0,
+          "history": []
+        },
+        "last_story": "",
+        "memory_source": null
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/v1/state",
+      "params": {
+        "player_code": "backend_review",
+        "item": "umbrella"
+      },
+      "request_body": null,
+      "response": {
+        "state": {
+          "turn": 0,
+          "trust": 0,
+          "grudge": 0,
+          "pranks": 0,
+          "gifts": 0,
+          "history": []
+        },
+        "last_story": "",
+        "memory_source": null
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/v1/interactions",
+      "params": null,
+      "request_body": {
+        "player_code": "backend_review",
+        "item": "umbrella",
+        "action": "prank",
+        "utterance": "我把伞面换成了会说早安的海苔",
+        "expected_turn": 0,
+        "operation_id": "8901570ce533a212b2e763859c641d9830e46bc23011bf0d1e5a7608fe0ca237",
+        "state": {
+          "turn": 1,
+          "trust": -2,
+          "grudge": 1,
+          "pranks": 1,
+          "gifts": 0,
+          "history": [
+            {
+              "turn": 1,
+              "action": "prank",
+              "summary": "第1轮，你对阴阳怪气的雨伞恶作剧，留下的话是「我把伞面换成了会说早安的海苔」"
+            }
+          ]
+        },
+        "narrative": "阴阳怪气的雨伞：它翻出一本《人类离谱行为登记簿》，郑重写下了这一笔。\n\n它记得：这是初次见面，没有旧账。"
+      },
+      "response": {
+        "state": {
+          "gifts": 0,
+          "grudge": 1,
+          "history": [
+            {
+              "action": "prank",
+              "summary": "第1轮，你对阴阳怪气的雨伞恶作剧，留下的话是「我把伞面换成了会说早安的海苔」",
+              "turn": 1
+            }
+          ],
+          "pranks": 1,
+          "trust": -2,
+          "turn": 1
+        },
+        "last_story": "阴阳怪气的雨伞：它翻出一本《人类离谱行为登记簿》，郑重写下了这一笔。\n\n它记得：这是初次见面，没有旧账。",
+        "memory_source": {
+          "source_type": "content",
+          "source_id": "oddity:8901570ce533a212b2e763859c641d9830e46bc23011bf0d1e5a7608fe0ca237",
+          "scope_id": "scp_43gtbwapvpv6hzy83ytmy85cwx",
+          "sequence": 1,
+          "content_digest": "sha256:730750c43f450fb1a6fb6daadb5c68978f616bfd33e1341eec0ce9bace86e2a4"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/v1/interactions",
+      "params": null,
+      "request_body": {
+        "player_code": "backend_review",
+        "item": "umbrella",
+        "action": "prank",
+        "utterance": "我把伞面换成了会说早安的海苔",
+        "expected_turn": 0,
+        "operation_id": "8901570ce533a212b2e763859c641d9830e46bc23011bf0d1e5a7608fe0ca237",
+        "state": {
+          "turn": 1,
+          "trust": -2,
+          "grudge": 1,
+          "pranks": 1,
+          "gifts": 0,
+          "history": [
+            {
+              "turn": 1,
+              "action": "prank",
+              "summary": "第1轮，你对阴阳怪气的雨伞恶作剧，留下的话是「我把伞面换成了会说早安的海苔」"
+            }
+          ]
+        },
+        "narrative": "阴阳怪气的雨伞：它翻出一本《人类离谱行为登记簿》，郑重写下了这一笔。\n\n它记得：这是初次见面，没有旧账。"
+      },
+      "response": {
+        "state": {
+          "gifts": 0,
+          "grudge": 1,
+          "history": [
+            {
+              "action": "prank",
+              "summary": "第1轮，你对阴阳怪气的雨伞恶作剧，留下的话是「我把伞面换成了会说早安的海苔」",
+              "turn": 1
+            }
+          ],
+          "pranks": 1,
+          "trust": -2,
+          "turn": 1
+        },
+        "last_story": "阴阳怪气的雨伞：它翻出一本《人类离谱行为登记簿》，郑重写下了这一笔。\n\n它记得：这是初次见面，没有旧账。",
+        "memory_source": {
+          "source_type": "content",
+          "source_id": "oddity:8901570ce533a212b2e763859c641d9830e46bc23011bf0d1e5a7608fe0ca237",
+          "scope_id": "scp_43gtbwapvpv6hzy83ytmy85cwx",
+          "sequence": 1,
+          "content_digest": "sha256:730750c43f450fb1a6fb6daadb5c68978f616bfd33e1341eec0ce9bace86e2a4"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/v1/state",
+      "params": {
+        "player_code": "backend_review",
+        "item": "umbrella"
+      },
+      "request_body": null,
+      "response": {
+        "state": {
+          "gifts": 0,
+          "grudge": 1,
+          "history": [
+            {
+              "action": "prank",
+              "summary": "第1轮，你对阴阳怪气的雨伞恶作剧，留下的话是「我把伞面换成了会说早安的海苔」",
+              "turn": 1
+            }
+          ],
+          "pranks": 1,
+          "trust": -2,
+          "turn": 1
+        },
+        "last_story": "阴阳怪气的雨伞：它翻出一本《人类离谱行为登记簿》，郑重写下了这一笔。\n\n它记得：这是初次见面，没有旧账。",
+        "memory_source": {
+          "source_type": "content",
+          "source_id": "oddity:8901570ce533a212b2e763859c641d9830e46bc23011bf0d1e5a7608fe0ca237",
+          "scope_id": "scp_43gtbwapvpv6hzy83ytmy85cwx",
+          "sequence": 1,
+          "content_digest": "sha256:730750c43f450fb1a6fb6daadb5c68978f616bfd33e1341eec0ce9bace86e2a4"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/v1/state",
+      "params": {
+        "player_code": "backend_review",
+        "item": "umbrella"
+      },
+      "request_body": null,
+      "response": {
+        "state": {
+          "gifts": 0,
+          "grudge": 1,
+          "history": [
+            {
+              "action": "prank",
+              "summary": "第1轮，你对阴阳怪气的雨伞恶作剧，留下的话是「我把伞面换成了会说早安的海苔」",
+              "turn": 1
+            }
+          ],
+          "pranks": 1,
+          "trust": -2,
+          "turn": 1
+        },
+        "last_story": "阴阳怪气的雨伞：它翻出一本《人类离谱行为登记簿》，郑重写下了这一笔。\n\n它记得：这是初次见面，没有旧账。",
+        "memory_source": {
+          "source_type": "content",
+          "source_id": "oddity:8901570ce533a212b2e763859c641d9830e46bc23011bf0d1e5a7608fe0ca237",
+          "scope_id": "scp_43gtbwapvpv6hzy83ytmy85cwx",
+          "sequence": 1,
+          "content_digest": "sha256:730750c43f450fb1a6fb6daadb5c68978f616bfd33e1341eec0ce9bace86e2a4"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/v1/state",
+      "params": {
+        "player_code": "backend_review",
+        "item": "umbrella"
+      },
+      "request_body": null,
+      "response": {
+        "state": {
+          "gifts": 0,
+          "grudge": 1,
+          "history": [
+            {
+              "action": "prank",
+              "summary": "第1轮，你对阴阳怪气的雨伞恶作剧，留下的话是「我把伞面换成了会说早安的海苔」",
+              "turn": 1
+            }
+          ],
+          "pranks": 1,
+          "trust": -2,
+          "turn": 1
+        },
+        "last_story": "阴阳怪气的雨伞：它翻出一本《人类离谱行为登记簿》，郑重写下了这一笔。\n\n它记得：这是初次见面，没有旧账。",
+        "memory_source": {
+          "source_type": "content",
+          "source_id": "oddity:8901570ce533a212b2e763859c641d9830e46bc23011bf0d1e5a7608fe0ca237",
+          "scope_id": "scp_43gtbwapvpv6hzy83ytmy85cwx",
+          "sequence": 1,
+          "content_digest": "sha256:730750c43f450fb1a6fb6daadb5c68978f616bfd33e1341eec0ce9bace86e2a4"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/v1/interactions",
+      "params": null,
+      "request_body": {
+        "player_code": "backend_review",
+        "item": "umbrella",
+        "action": "apologize",
+        "utterance": "我带着熨斗来道歉",
+        "expected_turn": 1,
+        "operation_id": "f67784016746e5db964839cc4e90e0dbb8838ae4dc44f9c95345d551e2740c7a",
+        "state": {
+          "gifts": 0,
+          "grudge": 0,
+          "history": [
+            {
+              "action": "prank",
+              "summary": "第1轮，你对阴阳怪气的雨伞恶作剧，留下的话是「我把伞面换成了会说早安的海苔」",
+              "turn": 1
+            },
+            {
+              "turn": 2,
+              "action": "apologize",
+              "summary": "第2轮，你对阴阳怪气的雨伞道歉，留下的话是「我带着熨斗来道歉」"
+            }
+          ],
+          "pranks": 1,
+          "trust": 0,
+          "turn": 2
+        },
+        "narrative": "阴阳怪气的雨伞：它把这一页轻轻折起：原谅可以，失忆不行。\n\n它记得：第1轮，你对阴阳怪气的雨伞恶作剧，留下的话是「我把伞面换成了会说早安的海苔」"
+      },
+      "response": {
+        "state": {
+          "gifts": 0,
+          "grudge": 0,
+          "history": [
+            {
+              "action": "prank",
+              "summary": "第1轮，你对阴阳怪气的雨伞恶作剧，留下的话是「我把伞面换成了会说早安的海苔」",
+              "turn": 1
+            },
+            {
+              "action": "apologize",
+              "summary": "第2轮，你对阴阳怪气的雨伞道歉，留下的话是「我带着熨斗来道歉」",
+              "turn": 2
+            }
+          ],
+          "pranks": 1,
+          "trust": 0,
+          "turn": 2
+        },
+        "last_story": "阴阳怪气的雨伞：它把这一页轻轻折起：原谅可以，失忆不行。\n\n它记得：第1轮，你对阴阳怪气的雨伞恶作剧，留下的话是「我把伞面换成了会说早安的海苔」",
+        "memory_source": {
+          "source_type": "content",
+          "source_id": "oddity:f67784016746e5db964839cc4e90e0dbb8838ae4dc44f9c95345d551e2740c7a",
+          "scope_id": "scp_43gtbwapvpv6hzy83ytmy85cwx",
+          "sequence": 2,
+          "content_digest": "sha256:b3451001b59762a50a0894246311b048b1ec6d86730d676095e97fce72a1a6e8"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/v1/state",
+      "params": {
+        "player_code": "backend_review",
+        "item": "umbrella"
+      },
+      "request_body": null,
+      "response": {
+        "state": {
+          "gifts": 0,
+          "grudge": 0,
+          "history": [
+            {
+              "action": "prank",
+              "summary": "第1轮，你对阴阳怪气的雨伞恶作剧，留下的话是「我把伞面换成了会说早安的海苔」",
+              "turn": 1
+            },
+            {
+              "action": "apologize",
+              "summary": "第2轮，你对阴阳怪气的雨伞道歉，留下的话是「我带着熨斗来道歉」",
+              "turn": 2
+            }
+          ],
+          "pranks": 1,
+          "trust": 0,
+          "turn": 2
+        },
+        "last_story": "阴阳怪气的雨伞：它把这一页轻轻折起：原谅可以，失忆不行。\n\n它记得：第1轮，你对阴阳怪气的雨伞恶作剧，留下的话是「我把伞面换成了会说早安的海苔」",
+        "memory_source": {
+          "source_type": "content",
+          "source_id": "oddity:f67784016746e5db964839cc4e90e0dbb8838ae4dc44f9c95345d551e2740c7a",
+          "scope_id": "scp_43gtbwapvpv6hzy83ytmy85cwx",
+          "sequence": 2,
+          "content_digest": "sha256:b3451001b59762a50a0894246311b048b1ec6d86730d676095e97fce72a1a6e8"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/v1/interactions",
+      "params": null,
+      "request_body": {
+        "player_code": "backend_review",
+        "item": "umbrella",
+        "action": "gift",
+        "utterance": "一个不下雨的星期一",
+        "expected_turn": 2,
+        "operation_id": "d1daf4bdc4cb3a4d08e30cf95d53783e115fa9077c9064c33694d6f02390d834",
+        "state": {
+          "gifts": 1,
+          "grudge": 0,
+          "history": [
+            {
+              "action": "prank",
+              "summary": "第1轮，你对阴阳怪气的雨伞恶作剧，留下的话是「我把伞面换成了会说早安的海苔」",
+              "turn": 1
+            },
+            {
+              "action": "apologize",
+              "summary": "第2轮，你对阴阳怪气的雨伞道歉，留下的话是「我带着熨斗来道歉」",
+              "turn": 2
+            },
+            {
+              "turn": 3,
+              "action": "gift",
+              "summary": "第3轮，你对阴阳怪气的雨伞送礼，留下的话是「一个不下雨的星期一」"
+            }
+          ],
+          "pranks": 1,
+          "trust": 2,
+          "turn": 3
+        },
+        "narrative": "阴阳怪气的雨伞：它收下礼物，还装作这只是一次严肃的学术交流。\n\n它记得：第2轮，你对阴阳怪气的雨伞道歉，留下的话是「我带着熨斗来道歉」"
+      },
+      "response": {
+        "state": {
+          "gifts": 1,
+          "grudge": 0,
+          "history": [
+            {
+              "action": "prank",
+              "summary": "第1轮，你对阴阳怪气的雨伞恶作剧，留下的话是「我把伞面换成了会说早安的海苔」",
+              "turn": 1
+            },
+            {
+              "action": "apologize",
+              "summary": "第2轮，你对阴阳怪气的雨伞道歉，留下的话是「我带着熨斗来道歉」",
+              "turn": 2
+            },
+            {
+              "action": "gift",
+              "summary": "第3轮，你对阴阳怪气的雨伞送礼，留下的话是「一个不下雨的星期一」",
+              "turn": 3
+            }
+          ],
+          "pranks": 1,
+          "trust": 2,
+          "turn": 3
+        },
+        "last_story": "阴阳怪气的雨伞：它收下礼物，还装作这只是一次严肃的学术交流。\n\n它记得：第2轮，你对阴阳怪气的雨伞道歉，留下的话是「我带着熨斗来道歉」",
+        "memory_source": {
+          "source_type": "content",
+          "source_id": "oddity:d1daf4bdc4cb3a4d08e30cf95d53783e115fa9077c9064c33694d6f02390d834",
+          "scope_id": "scp_43gtbwapvpv6hzy83ytmy85cwx",
+          "sequence": 3,
+          "content_digest": "sha256:4547d90b473c67b0a0427bad8f2861348b1de6edc0cba1a4de5614ab2401b2a1"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/v1/state",
+      "params": {
+        "player_code": "backend_review",
+        "item": "umbrella"
+      },
+      "request_body": null,
+      "response": {
+        "state": {
+          "gifts": 1,
+          "grudge": 0,
+          "history": [
+            {
+              "action": "prank",
+              "summary": "第1轮，你对阴阳怪气的雨伞恶作剧，留下的话是「我把伞面换成了会说早安的海苔」",
+              "turn": 1
+            },
+            {
+              "action": "apologize",
+              "summary": "第2轮，你对阴阳怪气的雨伞道歉，留下的话是「我带着熨斗来道歉」",
+              "turn": 2
+            },
+            {
+              "action": "gift",
+              "summary": "第3轮，你对阴阳怪气的雨伞送礼，留下的话是「一个不下雨的星期一」",
+              "turn": 3
+            }
+          ],
+          "pranks": 1,
+          "trust": 2,
+          "turn": 3
+        },
+        "last_story": "阴阳怪气的雨伞：它收下礼物，还装作这只是一次严肃的学术交流。\n\n它记得：第2轮，你对阴阳怪气的雨伞道歉，留下的话是「我带着熨斗来道歉」",
+        "memory_source": {
+          "source_type": "content",
+          "source_id": "oddity:d1daf4bdc4cb3a4d08e30cf95d53783e115fa9077c9064c33694d6f02390d834",
+          "scope_id": "scp_43gtbwapvpv6hzy83ytmy85cwx",
+          "sequence": 3,
+          "content_digest": "sha256:4547d90b473c67b0a0427bad8f2861348b1de6edc0cba1a4de5614ab2401b2a1"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/v1/interactions",
+      "params": null,
+      "request_body": {
+        "player_code": "backend_review",
+        "item": "umbrella",
+        "action": "greet",
+        "utterance": "这次我认真打招呼",
+        "expected_turn": 3,
+        "operation_id": "c03a2810808b6d5afd1a59966507e08fddbb73d810e893e5f331b9a9ebeec607",
+        "state": {
+          "gifts": 1,
+          "grudge": 0,
+          "history": [
+            {
+              "action": "prank",
+              "summary": "第1轮，你对阴阳怪气的雨伞恶作剧，留下的话是「我把伞面换成了会说早安的海苔」",
+              "turn": 1
+            },
+            {
+              "action": "apologize",
+              "summary": "第2轮，你对阴阳怪气的雨伞道歉，留下的话是「我带着熨斗来道歉」",
+              "turn": 2
+            },
+            {
+              "action": "gift",
+              "summary": "第3轮，你对阴阳怪气的雨伞送礼，留下的话是「一个不下雨的星期一」",
+              "turn": 3
+            },
+            {
+              "turn": 4,
+              "action": "greet",
+              "summary": "第4轮，你对阴阳怪气的雨伞打招呼，留下的话是「这次我认真打招呼」"
+            }
+          ],
+          "pranks": 1,
+          "trust": 3,
+          "turn": 4
+        },
+        "narrative": "阴阳怪气的雨伞：它假装没看你，却把最亮的一面朝向你。\n\n它记得：第3轮，你对阴阳怪气的雨伞送礼，留下的话是「一个不下雨的星期一」"
+      },
+      "response": {
+        "state": {
+          "gifts": 1,
+          "grudge": 0,
+          "history": [
+            {
+              "action": "prank",
+              "summary": "第1轮，你对阴阳怪气的雨伞恶作剧，留下的话是「我把伞面换成了会说早安的海苔」",
+              "turn": 1
+            },
+            {
+              "action": "apologize",
+              "summary": "第2轮，你对阴阳怪气的雨伞道歉，留下的话是「我带着熨斗来道歉」",
+              "turn": 2
+            },
+            {
+              "action": "gift",
+              "summary": "第3轮，你对阴阳怪气的雨伞送礼，留下的话是「一个不下雨的星期一」",
+              "turn": 3
+            },
+            {
+              "action": "greet",
+              "summary": "第4轮，你对阴阳怪气的雨伞打招呼，留下的话是「这次我认真打招呼」",
+              "turn": 4
+            }
+          ],
+          "pranks": 1,
+          "trust": 3,
+          "turn": 4
+        },
+        "last_story": "阴阳怪气的雨伞：它假装没看你，却把最亮的一面朝向你。\n\n它记得：第3轮，你对阴阳怪气的雨伞送礼，留下的话是「一个不下雨的星期一」",
+        "memory_source": {
+          "source_type": "content",
+          "source_id": "oddity:c03a2810808b6d5afd1a59966507e08fddbb73d810e893e5f331b9a9ebeec607",
+          "scope_id": "scp_43gtbwapvpv6hzy83ytmy85cwx",
+          "sequence": 4,
+          "content_digest": "sha256:c42d836c1130f5f74b47ccac09ca5a7d5ca597b5892edb1a07a92cbfb63f3db8"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/v1/state",
+      "params": {
+        "player_code": "backend_review",
+        "item": "umbrella"
+      },
+      "request_body": null,
+      "response": {
+        "state": {
+          "gifts": 1,
+          "grudge": 0,
+          "history": [
+            {
+              "action": "prank",
+              "summary": "第1轮，你对阴阳怪气的雨伞恶作剧，留下的话是「我把伞面换成了会说早安的海苔」",
+              "turn": 1
+            },
+            {
+              "action": "apologize",
+              "summary": "第2轮，你对阴阳怪气的雨伞道歉，留下的话是「我带着熨斗来道歉」",
+              "turn": 2
+            },
+            {
+              "action": "gift",
+              "summary": "第3轮，你对阴阳怪气的雨伞送礼，留下的话是「一个不下雨的星期一」",
+              "turn": 3
+            },
+            {
+              "action": "greet",
+              "summary": "第4轮，你对阴阳怪气的雨伞打招呼，留下的话是「这次我认真打招呼」",
+              "turn": 4
+            }
+          ],
+          "pranks": 1,
+          "trust": 3,
+          "turn": 4
+        },
+        "last_story": "阴阳怪气的雨伞：它假装没看你，却把最亮的一面朝向你。\n\n它记得：第3轮，你对阴阳怪气的雨伞送礼，留下的话是「一个不下雨的星期一」",
+        "memory_source": {
+          "source_type": "content",
+          "source_id": "oddity:c03a2810808b6d5afd1a59966507e08fddbb73d810e893e5f331b9a9ebeec607",
+          "scope_id": "scp_43gtbwapvpv6hzy83ytmy85cwx",
+          "sequence": 4,
+          "content_digest": "sha256:c42d836c1130f5f74b47ccac09ca5a7d5ca597b5892edb1a07a92cbfb63f3db8"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/v1/interactions",
+      "params": null,
+      "request_body": {
+        "player_code": "backend_review",
+        "item": "umbrella",
+        "action": "explore",
+        "utterance": "请说说你的秘密",
+        "expected_turn": 4,
+        "operation_id": "0295da409378406733e72c42be70224782c8daea1264430a422355fa22b0fd5a",
+        "state": {
+          "gifts": 1,
+          "grudge": 0,
+          "history": [
+            {
+              "action": "prank",
+              "summary": "第1轮，你对阴阳怪气的雨伞恶作剧，留下的话是「我把伞面换成了会说早安的海苔」",
+              "turn": 1
+            },
+            {
+              "action": "apologize",
+              "summary": "第2轮，你对阴阳怪气的雨伞道歉，留下的话是「我带着熨斗来道歉」",
+              "turn": 2
+            },
+            {
+              "action": "gift",
+              "summary": "第3轮，你对阴阳怪气的雨伞送礼，留下的话是「一个不下雨的星期一」",
+              "turn": 3
+            },
+            {
+              "action": "greet",
+              "summary": "第4轮，你对阴阳怪气的雨伞打招呼，留下的话是「这次我认真打招呼」",
+              "turn": 4
+            },
+            {
+              "turn": 5,
+              "action": "explore",
+              "summary": "第5轮，你对阴阳怪气的雨伞打听秘密，留下的话是「请说说你的秘密」"
+            }
+          ],
+          "pranks": 1,
+          "trust": 3,
+          "turn": 5
+        },
+        "narrative": "阴阳怪气的雨伞：我能替你挡住明天的尴尬，但挡不住你昨天没写完的作业。\n\n它记得：第4轮，你对阴阳怪气的雨伞打招呼，留下的话是「这次我认真打招呼」"
+      },
+      "response": {
+        "state": {
+          "gifts": 1,
+          "grudge": 0,
+          "history": [
+            {
+              "action": "prank",
+              "summary": "第1轮，你对阴阳怪气的雨伞恶作剧，留下的话是「我把伞面换成了会说早安的海苔」",
+              "turn": 1
+            },
+            {
+              "action": "apologize",
+              "summary": "第2轮，你对阴阳怪气的雨伞道歉，留下的话是「我带着熨斗来道歉」",
+              "turn": 2
+            },
+            {
+              "action": "gift",
+              "summary": "第3轮，你对阴阳怪气的雨伞送礼，留下的话是「一个不下雨的星期一」",
+              "turn": 3
+            },
+            {
+              "action": "greet",
+              "summary": "第4轮，你对阴阳怪气的雨伞打招呼，留下的话是「这次我认真打招呼」",
+              "turn": 4
+            },
+            {
+              "action": "explore",
+              "summary": "第5轮，你对阴阳怪气的雨伞打听秘密，留下的话是「请说说你的秘密」",
+              "turn": 5
+            }
+          ],
+          "pranks": 1,
+          "trust": 3,
+          "turn": 5
+        },
+        "last_story": "阴阳怪气的雨伞：我能替你挡住明天的尴尬，但挡不住你昨天没写完的作业。\n\n它记得：第4轮，你对阴阳怪气的雨伞打招呼，留下的话是「这次我认真打招呼」",
+        "memory_source": {
+          "source_type": "content",
+          "source_id": "oddity:0295da409378406733e72c42be70224782c8daea1264430a422355fa22b0fd5a",
+          "scope_id": "scp_43gtbwapvpv6hzy83ytmy85cwx",
+          "sequence": 5,
+          "content_digest": "sha256:e2d14534a30d9d5c9a0cccc4d8b710e7516d616fcc9db5a270fbbbfe4e54d4f7"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/v1/source",
+      "params": {
+        "player_code": "backend_review",
+        "item": "umbrella",
+        "source_id": "oddity:8901570ce533a212b2e763859c641d9830e46bc23011bf0d1e5a7608fe0ca237"
+      },
+      "request_body": null,
+      "response": {
+        "state": {
+          "gifts": 0,
+          "grudge": 1,
+          "history": [
+            {
+              "action": "prank",
+              "summary": "第1轮，你对阴阳怪气的雨伞恶作剧，留下的话是「我把伞面换成了会说早安的海苔」",
+              "turn": 1
+            }
+          ],
+          "pranks": 1,
+          "trust": -2,
+          "turn": 1
+        },
+        "last_story": "阴阳怪气的雨伞：它翻出一本《人类离谱行为登记簿》，郑重写下了这一笔。\n\n它记得：这是初次见面，没有旧账。",
+        "memory_source": {
+          "source_type": "content",
+          "source_id": "oddity:8901570ce533a212b2e763859c641d9830e46bc23011bf0d1e5a7608fe0ca237",
+          "scope_id": "scp_43gtbwapvpv6hzy83ytmy85cwx",
+          "sequence": 1,
+          "content_digest": "sha256:730750c43f450fb1a6fb6daadb5c68978f616bfd33e1341eec0ce9bace86e2a4"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/v1/state",
+      "params": {
+        "player_code": "another_player",
+        "item": "umbrella"
+      },
+      "request_body": null,
+      "response": {
+        "state": {
+          "turn": 0,
+          "trust": 0,
+          "grudge": 0,
+          "pranks": 0,
+          "gifts": 0,
+          "history": []
+        },
+        "last_story": "",
+        "memory_source": null
+      }
+    }
+  ],
+  "source_sha256": {
+    "src/oddity_pawnshop/__init__.py": "eb97cd9d7b2e00b39b2976ce0e5e84ded0106552466485b329371bc2e5546e3a",
+    "src/oddity_pawnshop/memory.py": "bb71417258c9d6a21bbb62abbecbe9f8db318b5d88f14ea9dffd58084c7ad365",
+    "src/oddity_pawnshop/rules.py": "1a90883601c0e450ed42166ba227349910685c82e3b6f3cdb47598f4e4714fa4",
+    "src/oddity_pawnshop/server.py": "09f69875baf7da135b4043bf4da7f9bdd7e64bc6f0f641a7f49f4b9ee085e012"
+  }
+}

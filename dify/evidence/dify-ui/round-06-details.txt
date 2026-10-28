@@ -1,0 +1,51 @@
+Browser tab: 897500277, Title: "编排 · 会记仇的奇物当铺 - Dify", URL: "https://cloud.dify.ai/app/0af47a97-849f-4918-80e9-563bf1e1b256/workflow".
+The following is a diff from the previous accessibility tree with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 600-607, 613-640
++			717 container 宽度：400 像素 Test Run (08:51:45) 关闭 输入 结果 详情 追踪 输入 复制 展开 Editor content 调整编辑器尺寸 高度：172 像素 使用上下方向键调整高度，按住 Shift 加速。Home 或 Enter 恢复最小高度。 输出 复制 展开 Editor content 调整编辑器尺寸 高度：172 像素 使用上下方向键调整高度，按住 Shift 加速。Home 或 Enter 恢复最小高度。 元数据 状态 SUCCESS 执行人 Dify
++				718 container
++					719 splitter Description: 测试运行, Value: 400
++					720 text Test Run (08:51:45)
++					721 button 关闭
++					722 text 输入
++					723 text 结果
++					724 text 详情
++					725 text 追踪
++					726 container
++						727 text 状态
++						728 text SUCCESS
++						729 text 运行时间
++						730 text 1.022s
++						731 text 总 TOKEN 数
++						732 text 0 Tokens
++						733 text 输入
++						734 container
++							735 button 复制
++							736 button 展开
++						737 container
++							738 container
++								739 editor Editor content
++							740 button 调整编辑器尺寸
++							741 text 高度：172 像素 使用上下方向键调整高度，按住 Shift 加速。Home 或 Enter 恢复最小高度。
++						742 text 输出
++						743 container
++							744 button 复制
++							745 button 展开
++						746 container
++							747 container
++								748 editor Editor content
++							749 button 调整编辑器尺寸
++							750 text 高度：172 像素 使用上下方向键调整高度，按住 Shift 加速。Home 或 Enter 恢复最小高度。
++						751 text 元数据
++						752 text 状态
++						753 text SUCCESS
++						754 text 执行人
++						755 text Dify
++						756 text 开始时间
++						757 text 2026-10-28 08:51:44
++						758 text 运行时间
++						759 text 1.022s
++						760 text 总 token 数
++						761 text 0 Tokens
++						762 text 运行步数
++						763 text 5
+The focused UI element is 717 container 宽度：400 像素 Test Run (08:51:45) 关闭 输入 结果 详情 追踪 输入 复制 展开 Editor content 调整编辑器尺寸 高度：172 像素 使用上下方向键调整高度，按住 Shift 加速。Home 或 Enter 恢复最小高度。 输出 复制 展开 Editor content 调整编辑器尺寸 高度：172 像素 使用上下方向键调整高度，按住 Shift 加速。Home 或 Enter 恢复最小高度。 元数据 状态 SUCCESS 执行人 Dify

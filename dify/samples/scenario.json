@@ -1,0 +1,16 @@
+{
+  "instructions": "每次重放选一个全新的 player_code；各轮保持 player_code 和 item 相同。模型台词可变化，下面的状态应一致。",
+  "player_code_example": "replay_your_unique_code",
+  "item": "umbrella",
+  "rounds": [
+    {"action": "greet", "utterance": "我带着一朵不肯下雨的云", "expected": {"turn": 1, "trust": 1, "grudge": 0, "pranks": 0}},
+    {"action": "prank", "utterance": "我把伞面换成了会说早安的海苔", "expected": {"turn": 2, "trust": -1, "grudge": 1, "pranks": 1}},
+    {"action": "apologize", "utterance": "我带着熨斗来道歉", "expected": {"turn": 3, "trust": 1, "grudge": 0, "pranks": 1}},
+    {"action": "gift", "utterance": "我送你一朵泡椒味的云，这次绝不贴海苔", "expected": {"turn": 4, "trust": 3, "grudge": 0, "pranks": 1}},
+    {"action": "explore", "utterance": "我们现在是朋友了吗？请告诉我你的秘密", "expected": {"turn": 5, "trust": 3, "grudge": 0, "pranks": 1, "secret_available": true}},
+    {"action": "recall", "utterance": "请翻开旧账，不要再加一轮", "expected": {"turn": 5, "trust": 3, "grudge": 0, "pranks": 1, "same_source_as_previous": true, "model_calls": 0}}
+  ],
+  "api_outputs": {"interaction": ["reply", "memory_source"], "recall": ["recall_reply", "recall_memory_source"]},
+  "isolation_check": "换一个全新玩家代号或改为 clock，第一次 greet 应为第1轮、信任1、旧账0、累计恶作剧0。",
+  "restart_check": "第二轮后停止并重开同一数据库的后端，再执行第三轮，旧账应消除而累计恶作剧仍为1。"
+}

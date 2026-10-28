@@ -1,0 +1,65 @@
+{
+  "kind": "real-Dify-memory-backend-process-restart",
+  "before_pid": 12596,
+  "after_pid": 19512,
+  "same_database": true,
+  "state_and_exact_source_unchanged": true,
+  "before": {
+    "state": {
+      "gifts": 0,
+      "grudge": 1,
+      "history": [
+        {
+          "action": "greet",
+          "summary": "第1轮，你对阴阳怪气的雨伞打招呼，留下的话是「我带着一朵不肯下雨的云」",
+          "turn": 1
+        },
+        {
+          "action": "prank",
+          "summary": "第2轮，你对阴阳怪气的雨伞恶作剧，留下的话是「我把伞面换成了会说早安的海苔」",
+          "turn": 2
+        }
+      ],
+      "pranks": 1,
+      "trust": -1,
+      "turn": 2
+    },
+    "last_story": "哟，看你这恶作剧的本事，居然把我伞面换成了会说早安的海苔！真是个调皮捣蛋的家伙，想让我每天都像海洋一样波涛汹涌吗？不过，嘴硬的我其实心里还是想说，海苔说早安，倒是让这阴霾的心情明亮了不少。可别指望我会原谅你，得先让我好好想想这笔账！再说了，我可不是那么容易被捕获的海洋生物！",
+    "memory_source": {
+      "source_type": "content",
+      "source_id": "oddity:86523915077209ba4c0ae7bfcb7d9e93ccba65eb5f59d57cee3a21a792ed2ed8",
+      "scope_id": "scp_42wxc875qtn4fdrer2pb34ecf1",
+      "sequence": 2,
+      "content_digest": "sha256:be745683324c39a36aeeab28b442499ecab26ae81814b55528a5eba95dece0c7"
+    }
+  },
+  "after": {
+    "state": {
+      "gifts": 0,
+      "grudge": 1,
+      "history": [
+        {
+          "action": "greet",
+          "summary": "第1轮，你对阴阳怪气的雨伞打招呼，留下的话是「我带着一朵不肯下雨的云」",
+          "turn": 1
+        },
+        {
+          "action": "prank",
+          "summary": "第2轮，你对阴阳怪气的雨伞恶作剧，留下的话是「我把伞面换成了会说早安的海苔」",
+          "turn": 2
+        }
+      ],
+      "pranks": 1,
+      "trust": -1,
+      "turn": 2
+    },
+    "last_story": "哟，看你这恶作剧的本事，居然把我伞面换成了会说早安的海苔！真是个调皮捣蛋的家伙，想让我每天都像海洋一样波涛汹涌吗？不过，嘴硬的我其实心里还是想说，海苔说早安，倒是让这阴霾的心情明亮了不少。可别指望我会原谅你，得先让我好好想想这笔账！再说了，我可不是那么容易被捕获的海洋生物！",
+    "memory_source": {
+      "source_type": "content",
+      "source_id": "oddity:86523915077209ba4c0ae7bfcb7d9e93ccba65eb5f59d57cee3a21a792ed2ed8",
+      "scope_id": "scp_42wxc875qtn4fdrer2pb34ecf1",
+      "sequence": 2,
+      "content_digest": "sha256:be745683324c39a36aeeab28b442499ecab26ae81814b55528a5eba95dece0c7"
+    }
+  }
+}

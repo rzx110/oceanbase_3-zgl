@@ -1,0 +1,22 @@
+{
+  "command": [
+    ".venv/Scripts/python.exe",
+    "-m",
+    "pytest",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "tests"
+  ],
+  "exit_code": 0,
+  "stdout": ".......                                                                  [100%]\n7 passed in 3.93s\n",
+  "stderr": "",
+  "scope": "real PowerContext backend and local Dify Code serialization; not a Dify-host execution",
+  "source_sha256": {
+    "src/oddity_pawnshop/__init__.py": "eb97cd9d7b2e00b39b2976ce0e5e84ded0106552466485b329371bc2e5546e3a",
+    "src/oddity_pawnshop/memory.py": "bb71417258c9d6a21bbb62abbecbe9f8db318b5d88f14ea9dffd58084c7ad365",
+    "src/oddity_pawnshop/rules.py": "1a90883601c0e450ed42166ba227349910685c82e3b6f3cdb47598f4e4714fa4",
+    "src/oddity_pawnshop/server.py": "09f69875baf7da135b4043bf4da7f9bdd7e64bc6f0f641a7f49f4b9ee085e012"
+  },
+  "delivered_dsl_sha256": "ab710a88a5c2e5abfaccbe3983bb83823762e8ca398c18448906d969417375ab"
+}

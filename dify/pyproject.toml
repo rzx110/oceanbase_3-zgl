@@ -1,0 +1,28 @@
+[project]
+name = "oddity-pawnshop"
+version = "0.1.0"
+description = "会记仇的奇物当铺 — Dify + PowerContext interactive game"
+requires-python = ">=3.12"
+dependencies = [
+  "powercontext[builtin] @ git+https://github.com/oceanbase/powercontext.git@9db1753434162c0aa7c9f1189a1722e617880a52",
+  "aiosqlite==0.22.1",
+  "fastapi==0.162.0",
+  "uvicorn==0.54.0",
+  "pyyaml==6.0.3",
+]
+
+[dependency-groups]
+dev = ["pytest==8.4.2", "httpx==0.28.1"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/oddity_pawnshop"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

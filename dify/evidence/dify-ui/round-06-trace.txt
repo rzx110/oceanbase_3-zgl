@@ -1,0 +1,34 @@
+Browser tab: 897500277, Title: "编排 · 会记仇的奇物当铺 - Dify", URL: "https://cloud.dify.ai/app/0af47a97-849f-4918-80e9-563bf1e1b256/workflow".
+The following is a diff from the previous accessibility tree with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 716-759
+~			714 container 宽度：400 像素 Test Run (08:51:45) 关闭 输入 结果 详情 追踪 推开当铺的门 0.094 ms 翻开 POWERCONTEXT 记忆账本 679.334 ms 按真实旧账决定反应与分数 58.101 ms 只翻旧账，还是继续互动？ 0.141 ms 旧账只读，不增加轮次 0.081 ms
+~				715 container
++					716 splitter Description: 测试运行, Value: 400
++					717 text Test Run (08:51:45)
++					718 button 关闭
++					719 text 输入
++					720 text 结果
++					721 text 详情
++					722 text 追踪
++					723 container
++						724 image
++						725 text 推开当铺的门
++						726 text 0.094 ms
++						727 image
++						728 image
++						729 text 翻开 POWERCONTEXT 记忆账本
++						730 text 679.334 ms
++						731 image
++						732 image
++						733 text 按真实旧账决定反应与分数
++						734 text 58.101 ms
++						735 image
++						736 image
++						737 text 只翻旧账，还是继续互动？
++						738 text 0.141 ms
++						739 image
++						740 image
++						741 text 旧账只读，不增加轮次
++						742 text 0.081 ms
++						743 image
+The focused UI element is 714 container 宽度：400 像素 Test Run (08:51:45) 关闭 输入 结果 详情 追踪 推开当铺的门 0.094 ms 翻开 POWERCONTEXT 记忆账本 679.334 ms 按真实旧账决定反应与分数 58.101 ms 只翻旧账，还是继续互动？ 0.141 ms 旧账只读，不增加轮次 0.081 ms

@@ -1,0 +1,49 @@
+Browser tab: 897500277, Title: "编排 · 会记仇的奇物当铺（重新导入验证） - Dify", URL: "https://cloud.dify.ai/app/9e7b235a-c80d-4ffe-9ee6-f2fb3418f613/workflow".
+The following is a diff from the previous accessibility tree with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 237-244, 250-265
++			280 container 宽度：400 像素 Test Run (08:59:25) 关闭 输入 结果 详情 追踪 输入 复制 展开 Loading... 调整编辑器尺寸 高度：172 像素 使用上下方向键调整高度，按住 Shift 加速。Home 或 Enter 恢复最小高度。 输出 复制 展开 Loading... 调整编辑器尺寸 高度：172 像素 使用上下方向键调整高度，按住 Shift 加速。Home 或 Enter 恢复最小高度。 元数据 状态 SUCCESS 执行人 Dify 开始时间 2026-10-28 08:59:21 运行时间 4.239s 总 token 数 454 Tokens
++				281 container
++					282 splitter Description: 测试运行, Value: 400
++					283 text Test Run (08:59:25)
++					284 button 关闭
++					285 text 输入
++					286 text 结果
++					287 text 详情
++					288 text 追踪
++					289 container
++						290 text 状态
++						291 text SUCCESS
++						292 text 运行时间
++						293 text 4.239s
++						294 text 总 TOKEN 数
++						295 text 454 Tokens
++						296 text 输入
++						297 container
++							298 button 复制
++							299 button 展开
++						300 container
++							301 text Loading...
++							302 button 调整编辑器尺寸
++							303 text 高度：172 像素 使用上下方向键调整高度，按住 Shift 加速。Home 或 Enter 恢复最小高度。
++						304 text 输出
++						305 container
++							306 button 复制
++							307 button 展开
++						308 container
++							309 text Loading...
++							310 button 调整编辑器尺寸
++							311 text 高度：172 像素 使用上下方向键调整高度，按住 Shift 加速。Home 或 Enter 恢复最小高度。
++						312 text 元数据
++						313 text 状态
++						314 text SUCCESS
++						315 text 执行人
++						316 text Dify
++						317 text 开始时间
++						318 text 2026-10-28 08:59:21
++						319 text 运行时间
++						320 text 4.239s
++						321 text 总 token 数
++						322 text 454 Tokens
++						323 text 运行步数
++						324 text 9
+The focused UI element is 280 container 宽度：400 像素 Test Run (08:59:25) 关闭 输入 结果 详情 追踪 输入 复制 展开 Loading... 调整编辑器尺寸 高度：172 像素 使用上下方向键调整高度，按住 Shift 加速。Home 或 Enter 恢复最小高度。 输出 复制 展开 Loading... 调整编辑器尺寸 高度：172 像素 使用上下方向键调整高度，按住 Shift 加速。Home 或 Enter 恢复最小高度。 元数据 状态 SUCCESS 执行人 Dify 开始时间 2026-10-28 08:59:21 运行时间 4.239s 总 token 数 454 Tokens

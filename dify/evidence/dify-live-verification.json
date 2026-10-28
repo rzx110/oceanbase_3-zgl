@@ -1,0 +1,241 @@
+{
+  "kind": "actual-Dify-UI-results-exact-PowerContext-readback",
+  "result": "passed",
+  "host": "Dify Cloud",
+  "observed_date": "2026-10-28",
+  "published_url": "https://udify.app/workflow/jvk3Zdb4WkHl6qLC",
+  "main_app_id": "0af47a97-849f-4918-80e9-563bf1e1b256",
+  "reimport_app_id": "9e7b235a-c80d-4ffe-9ee6-f2fb3418f613",
+  "checks": {
+    "five_ordered_interactions": true,
+    "same_database_restart_after_round_two": true,
+    "recall_does_not_add_a_turn_or_write": true,
+    "recall_zero_model_tokens_observed": true,
+    "all_five_old_source_receipts_exact": true,
+    "published_web_app_execution": true,
+    "delivered_DSL_reimported_and_run": true,
+    "fresh_player_isolated": true
+  },
+  "round_records": [
+    {
+      "state": {
+        "gifts": 0,
+        "grudge": 0,
+        "history": [
+          {
+            "action": "greet",
+            "summary": "第1轮，你对阴阳怪气的雨伞打招呼，留下的话是「我带着一朵不肯下雨的云」",
+            "turn": 1
+          }
+        ],
+        "pranks": 0,
+        "trust": 1,
+        "turn": 1
+      },
+      "last_story": "哦，带着一朵不肯下雨的云来见我？真有趣！听起来就像是我这把伞的心情，时而阴沉，却又不愿放下雨来。你可别指望我会立刻为你驱散云雾，我可是有点嘴硬呢。不过，或许心底还是渴望一场雨，让阳光透过来。就这样吧，慢慢聊，看看这云会不会转变！",
+      "memory_source": {
+        "source_type": "content",
+        "source_id": "oddity:b9ce18f7ad23e94876507918314d3b315d9140dd8ee3a11fb2794c70fba0952c",
+        "scope_id": "scp_42wxc875qtn4fdrer2pb34ecf1",
+        "sequence": 1,
+        "content_digest": "sha256:767d27229f8d164a9d74e162c7fb0299f25494ab511556472525d85cc9428371"
+      }
+    },
+    {
+      "state": {
+        "gifts": 0,
+        "grudge": 1,
+        "history": [
+          {
+            "action": "greet",
+            "summary": "第1轮，你对阴阳怪气的雨伞打招呼，留下的话是「我带着一朵不肯下雨的云」",
+            "turn": 1
+          },
+          {
+            "action": "prank",
+            "summary": "第2轮，你对阴阳怪气的雨伞恶作剧，留下的话是「我把伞面换成了会说早安的海苔」",
+            "turn": 2
+          }
+        ],
+        "pranks": 1,
+        "trust": -1,
+        "turn": 2
+      },
+      "last_story": "哟，看你这恶作剧的本事，居然把我伞面换成了会说早安的海苔！真是个调皮捣蛋的家伙，想让我每天都像海洋一样波涛汹涌吗？不过，嘴硬的我其实心里还是想说，海苔说早安，倒是让这阴霾的心情明亮了不少。可别指望我会原谅你，得先让我好好想想这笔账！再说了，我可不是那么容易被捕获的海洋生物！",
+      "memory_source": {
+        "source_type": "content",
+        "source_id": "oddity:86523915077209ba4c0ae7bfcb7d9e93ccba65eb5f59d57cee3a21a792ed2ed8",
+        "scope_id": "scp_42wxc875qtn4fdrer2pb34ecf1",
+        "sequence": 2,
+        "content_digest": "sha256:be745683324c39a36aeeab28b442499ecab26ae81814b55528a5eba95dece0c7"
+      }
+    },
+    {
+      "state": {
+        "gifts": 0,
+        "grudge": 0,
+        "history": [
+          {
+            "action": "greet",
+            "summary": "第1轮，你对阴阳怪气的雨伞打招呼，留下的话是「我带着一朵不肯下雨的云」",
+            "turn": 1
+          },
+          {
+            "action": "prank",
+            "summary": "第2轮，你对阴阳怪气的雨伞恶作剧，留下的话是「我把伞面换成了会说早安的海苔」",
+            "turn": 2
+          },
+          {
+            "action": "apologize",
+            "summary": "第3轮，你对阴阳怪气的雨伞道歉，留下的话是「我带着熨斗来道歉」",
+            "turn": 3
+          }
+        ],
+        "pranks": 1,
+        "trust": 1,
+        "turn": 3
+      },
+      "last_story": "哟，你居然带着熨斗来道歉，想熨平我这道皱褶？可别小看我这把雨伞，心里可藏着不少风雨！你那恶作剧的海苔至今让我心潮起伏。不过，嘴硬的我也不是那么不讲情面的，或许可以考虑放你一马，但记住，下次可得注意点哦！再说了，我还是挺喜欢你那朵不肯下雨的云的，雨伞也需要点阳光嘛！",
+      "memory_source": {
+        "source_type": "content",
+        "source_id": "oddity:9378dde9f520d635191b7dfe07bf096cdce43fcb5c27c2f8b67c6de0a024cb68",
+        "scope_id": "scp_42wxc875qtn4fdrer2pb34ecf1",
+        "sequence": 3,
+        "content_digest": "sha256:6e92e322206b8ec3bb17722baa35582ce6a70c218403fc3f8e2b933a3124267f"
+      }
+    },
+    {
+      "state": {
+        "gifts": 1,
+        "grudge": 0,
+        "history": [
+          {
+            "action": "greet",
+            "summary": "第1轮，你对阴阳怪气的雨伞打招呼，留下的话是「我带着一朵不肯下雨的云」",
+            "turn": 1
+          },
+          {
+            "action": "prank",
+            "summary": "第2轮，你对阴阳怪气的雨伞恶作剧，留下的话是「我把伞面换成了会说早安的海苔」",
+            "turn": 2
+          },
+          {
+            "action": "apologize",
+            "summary": "第3轮，你对阴阳怪气的雨伞道歉，留下的话是「我带着熨斗来道歉」",
+            "turn": 3
+          },
+          {
+            "action": "gift",
+            "summary": "第4轮，你对阴阳怪气的雨伞送礼，留下的话是「我送你一朵泡椒味的云，这次绝不贴海苔」",
+            "turn": 4
+          }
+        ],
+        "pranks": 1,
+        "trust": 3,
+        "turn": 4
+      },
+      "last_story": "哟，泡椒味的云？这可是让我心里小雨滴直下啊！虽然我嘴上不饶人，但这份心意我总算能接受。不过，下次可别再给我海苔了，我可不想每次都被恶搞得像遭遇暴风雨一样。记住，伞也需要点温暖的阳光，别让我再感受到那种阴冷的气息哦！",
+      "memory_source": {
+        "source_type": "content",
+        "source_id": "oddity:85243a3c5f82ba9546550f27f66cf71e2105ef24413ffeb57d8acdf6c16b30a7",
+        "scope_id": "scp_42wxc875qtn4fdrer2pb34ecf1",
+        "sequence": 4,
+        "content_digest": "sha256:1def18ca2b8def66d6973f028f4fd47c0cd59df89703f2178d123d1de6a62814"
+      }
+    },
+    {
+      "state": {
+        "gifts": 1,
+        "grudge": 0,
+        "history": [
+          {
+            "action": "greet",
+            "summary": "第1轮，你对阴阳怪气的雨伞打招呼，留下的话是「我带着一朵不肯下雨的云」",
+            "turn": 1
+          },
+          {
+            "action": "prank",
+            "summary": "第2轮，你对阴阳怪气的雨伞恶作剧，留下的话是「我把伞面换成了会说早安的海苔」",
+            "turn": 2
+          },
+          {
+            "action": "apologize",
+            "summary": "第3轮，你对阴阳怪气的雨伞道歉，留下的话是「我带着熨斗来道歉」",
+            "turn": 3
+          },
+          {
+            "action": "gift",
+            "summary": "第4轮，你对阴阳怪气的雨伞送礼，留下的话是「我送你一朵泡椒味的云，这次绝不贴海苔」",
+            "turn": 4
+          },
+          {
+            "action": "explore",
+            "summary": "第5轮，你对阴阳怪气的雨伞打听秘密，留下的话是「我们现在是朋友了吗？请告诉我你的秘密」",
+            "turn": 5
+          }
+        ],
+        "pranks": 1,
+        "trust": 3,
+        "turn": 5
+      },
+      "last_story": "哟，这可是个有趣的问题呢！我们之间的友情就像我这把伞，时而遮风挡雨，时而让你看见阳光。至于我的秘密嘛，我能替你挡住明天的尴尬，但挡不住你昨天没写完的作业哦！所以，别以为有我在，就能逃避责任呀！但话说回来，有你这样的朋友，我心里还是暖暖的。",
+      "memory_source": {
+        "source_type": "content",
+        "source_id": "oddity:e4c6dbccf57130f516c618c476f7f617d8e896c3b1ca0529bb67674bdc885bc4",
+        "scope_id": "scp_42wxc875qtn4fdrer2pb34ecf1",
+        "sequence": 5,
+        "content_digest": "sha256:2edf36d9cdf99e32cda1492ddf622abd3b9ea48e170cccd565f0e07f160c0173"
+      }
+    }
+  ],
+  "public_web_record": {
+    "state": {
+      "gifts": 0,
+      "grudge": 0,
+      "history": [
+        {
+          "action": "greet",
+          "summary": "第1轮，你对阴阳怪气的雨伞打招呼，留下的话是「我带来了一封写给星期八的信」",
+          "turn": 1
+        }
+      ],
+      "pranks": 0,
+      "trust": 1,
+      "turn": 1
+    },
+    "last_story": "哦，你来了！把信带给星期八？真是个出乎意料的天气预报，我想这封信一定是晴天里的一道闪电。我虽然嘴上不说，但心里其实是期待的。哼，别以为我会对你多好，反正我只是一把雨伞，哪懂人类的情感呢？不过，听你说话的感觉，似乎还不错，期待你后续的天气动态！",
+    "memory_source": {
+      "source_type": "content",
+      "source_id": "oddity:3787397788ff9db186ddd4d5e7d0b1e13043264c91bd39323b08f35896983d30",
+      "scope_id": "scp_2hprgp0djvr5wf0nta4vt3wm7r",
+      "sequence": 1,
+      "content_digest": "sha256:d243518790c4d5f41c1d5f76b470c9906f239794bc7d0ae25fd773b9621d4363"
+    }
+  },
+  "reimport_record": {
+    "state": {
+      "gifts": 0,
+      "grudge": 0,
+      "history": [
+        {
+          "action": "greet",
+          "summary": "第1轮，你对只响一次的闹钟打招呼，留下的话是「我带来了一个周一不用起床的梦」",
+          "turn": 1
+        }
+      ],
+      "pranks": 0,
+      "trust": 1,
+      "turn": 1
+    },
+    "last_story": "哦，周一不用起床的梦？听起来比我这只响一次的闹钟还要美好呢！不过，别指望我会轻易相信，毕竟我可见过不少“梦”，结果都让人醒得很不美妙。要不你先告诉我，这个梦里有没有我这样的闹钟？我可是专门负责叫醒懒虫的，虽然不怎么喜欢这个工作！",
+    "memory_source": {
+      "source_type": "content",
+      "source_id": "oddity:ae239fe662886483f7911df584fe4a159177944f8175c598f8fcb6b4979d1cff",
+      "scope_id": "scp_766xna5s253ag89ccm01p6ww7v",
+      "sequence": 1,
+      "content_digest": "sha256:65999ab29aedb7ea5d26d5642713e575ab260f2d906caeee48b4744f9716cc3f"
+    }
+  },
+  "delivered_dsl_sha256": "ab710a88a5c2e5abfaccbe3983bb83823762e8ca398c18448906d969417375ab",
+  "limitations": "Checks recorded Dify UI results against the live backend; does not invoke a Dify private API or certify the contest score."
+}
