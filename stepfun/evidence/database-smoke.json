@@ -1,0 +1,48 @@
+{
+  "kind": "real-local-seekdb-js-smoke",
+  "synthetic_vectors_only": true,
+  "browser_inference_test": false,
+  "version": [
+    {
+      "version": "5.7.25-OceanBase seekdb-v1.4.0.0"
+    }
+  ],
+  "collection": "stepfun_smoke_1793165937388",
+  "count": 3,
+  "result": {
+    "ids": [
+      [
+        "coffee",
+        "tea",
+        "db"
+      ]
+    ],
+    "distances": [
+      [
+        0.0328,
+        0.0161,
+        0.0159
+      ]
+    ],
+    "documents": [
+      [
+        "coffee cafe espresso",
+        "tea leaves kettle",
+        "database vector index"
+      ]
+    ],
+    "metadatas": [
+      [
+        {
+          "group": "drink"
+        },
+        {
+          "group": "drink"
+        },
+        {
+          "group": "software"
+        }
+      ]
+    ]
+  }
+}

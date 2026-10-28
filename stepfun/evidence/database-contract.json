@@ -1,0 +1,20 @@
+{
+  "passed": true,
+  "synthetic_vectors_only": true,
+  "browser_inference_test": false,
+  "serverRestartTest": false,
+  "database": "5.7.25-OceanBase seekdb-v1.4.0.0",
+  "collections": [
+    "edge_b995c44c5ce14e14b09a73e7dade3e4f",
+    "edge_a7831e8aabbf4c94a1b740b5fa02c3c3"
+  ],
+  "checks": [
+    "two chunks stored",
+    "obsolete trailing chunk removed",
+    "repeat import idempotent",
+    "invalid entire batch rejected before writes",
+    "concurrent hybrid searches isolated",
+    "client reconnection retains vectors and original text",
+    "return limit validated"
+  ]
+}

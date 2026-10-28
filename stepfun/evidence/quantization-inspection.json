@@ -1,0 +1,94 @@
+{
+  "model.onnx": {
+    "producer": "pytorch",
+    "producer_version": "2.0.1",
+    "operators": {
+      "Unsqueeze": 51,
+      "Cast": 1,
+      "Constant": 146,
+      "Sub": 14,
+      "Mul": 26,
+      "Shape": 49,
+      "Gather": 52,
+      "Slice": 1,
+      "Add": 88,
+      "ReduceMean": 26,
+      "Pow": 13,
+      "Sqrt": 13,
+      "Div": 25,
+      "MatMul": 48,
+      "Concat": 24,
+      "Reshape": 24,
+      "Transpose": 24,
+      "Softmax": 6,
+      "Erf": 6
+    },
+    "initializer_types": {
+      "INT64": 1,
+      "FLOAT": 101
+    }
+  },
+  "model_fp16.onnx": {
+    "producer": "pytorch",
+    "producer_version": "2.0.1",
+    "operators": {
+      "Unsqueeze": 51,
+      "Cast": 2,
+      "Constant": 146,
+      "Sub": 14,
+      "Mul": 26,
+      "Shape": 49,
+      "Gather": 52,
+      "Slice": 1,
+      "Add": 88,
+      "ReduceMean": 26,
+      "Pow": 13,
+      "Sqrt": 13,
+      "Div": 25,
+      "MatMul": 48,
+      "Concat": 24,
+      "Reshape": 24,
+      "Transpose": 24,
+      "Softmax": 6,
+      "Erf": 6
+    },
+    "initializer_types": {
+      "INT64": 1,
+      "FLOAT16": 101
+    }
+  },
+  "model_quantized.onnx": {
+    "producer": "onnx.quantize",
+    "producer_version": "0.1.0",
+    "operators": {
+      "Constant": 146,
+      "Unsqueeze": 51,
+      "Shape": 49,
+      "Gather": 52,
+      "DequantizeLinear": 3,
+      "Cast": 37,
+      "Add": 88,
+      "Sub": 14,
+      "Slice": 1,
+      "Mul": 98,
+      "ReduceMean": 26,
+      "Pow": 13,
+      "Sqrt": 13,
+      "Div": 25,
+      "DynamicQuantizeLinear": 24,
+      "MatMulInteger": 36,
+      "Concat": 24,
+      "Reshape": 24,
+      "Transpose": 24,
+      "MatMul": 12,
+      "Softmax": 6,
+      "Erf": 6
+    },
+    "initializer_types": {
+      "INT64": 1,
+      "FLOAT": 101,
+      "UINT8": 6,
+      "INT8": 72
+    }
+  }
+}

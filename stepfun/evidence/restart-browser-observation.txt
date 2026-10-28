@@ -1,0 +1,187 @@
+Browser tab: 897500681, Title: "端研 Edge Notes · 本地语义知识库", URL: "http://localhost:8791/".
+1 AXWebArea 端研 Edge Notes · 本地语义知识库, URL: localhost:8791/
+	2 container app
+		3 container
+			4 link Description: 端研 EDGE NOTES, Value: localhost:8791/
+			5 text 你的知识空间
+			79 container collections
+				80 button ▤ 研究笔记, Help: 32 个文本块
+				81 button ▤ 实验 wasm-fp32 B1, Help: 32 个文本块
+				82 button ▤ 自动测试 A 1793166372045, Help: 1 个文本块
+				83 button ▤ 自动测试 B 1793166372235, Help: 0 个文本块
+				84 button ▤ 实验 wasm-fp32 B1, Help: 32 个文本块
+				85 button ▤ 实验 wasm-q8 B1, Help: 32 个文本块
+				86 button ▤ 实验 wasm-fp32 B1, Help: 32 个文本块
+				87 button ▤ 实验 wasm-q8 B1, Help: 32 个文本块
+				88 button ▤ 实验 wasm-q8 B8, Help: 32 个文本块
+				89 button ▤ 实验 webgpu-fp32 B8, Help: 32 个文本块
+				90 button ▤ 实验 webgpu-fp16 B8, Help: 32 个文本块
+				91 button ▤ 索引刷新对照, Help: 32 个文本块
+				92 button ▤ 验证 A 1793172842946, Help: 2 个文本块
+				93 button ▤ 验证 B 1793172844742, Help: 0 个文本块
+				94 button ▤ 自动测试 A 1793173096744, Help: 1 个文本块
+				95 button ▤ 自动测试 B 1793173096933, Help: 0 个文本块
+			6 button ＋ 新建知识库, ID: new-kb
+			7 text  浏览器本地推理
+			8 text 向量与原文持久化于本机 seekdb 文本不会发送给云端模型。
+		9 container
+			10 text 工作台 / 
+			96 text 研究笔记
+			12 text ● 5.7.25-OceanBase seekdb-v1.4.0.0
+			13 text LOCAL INTELLIGENCE, TRACEABLE KNOWLEDGE
+			14 heading 让资料，成为线索。, Value: 1
+				15 text 让资料，成为线索。
+			16 text 在自己的设备上理解文本，找到可回查的原文。
+			17 text ✳
+			18 text 端侧引擎
+			178 text WEBGPU · FP16
+			179 text MiniLM-L6 · 384 维 · 模型已加载
+			21 container
+				22 text 推理配置
+				23 pop up button (collapsed, settable) 推理配置, Value: 自动 · 优先 WebGPU, ID: mode, Secondary Actions: Expand
+					24 menu
+						25 (disabled) 自动 · 优先 WebGPU
+						26 (disabled) WASM · INT8
+						27 (disabled) WASM · FP32 基线
+						28 (disabled) WebGPU · FP16
+						29 (disabled) WebGPU · FP32 基线
+			30 button 加载模型, ID: load
+			180 text 数据库内混合检索完成 · 端到端 417 ms
+			32 text 01
+			33 heading 收集资料, Value: 2
+				34 text 收集资料
+			98 text 32 个文本块
+			36 text 支持 TXT / Markdown。长文按段落切块，保留来源。
+			37 container
+				38 text 来源名称
+				39 text field (settable) 来源名称, Value: my-notes.md, ID: source
+			40 container
+				41 text 笔记正文
+				42 text entry area (settable) 笔记正文, ID: text
+			43 button 向量化并导入 ↗, ID: import
+			44 container
+				45 text 选择文件
+				46 button 选择文件, ID: files
+			47 button 导入演示集 · 32 篇原创笔记, ID: demo
+			48 text 模型针对英文训练。可保存中文原文，中文语义质量未作保证。
+			49 text 02
+			50 heading 发现关联, Value: 2
+				51 text 发现关联
+			52 text 全文 × 向量
+			53 container
+				54 text 用自然语言提问
+				55 text field (settable) 用自然语言提问 检索 →, Value: How can I run inference without a GPU?, ID: query
+				56 button 检索 →
+			57 button 没有 GPU 怎么办？
+			58 button 新文档何时可检索？
+			181 text 5 条来源 · 查询向量 357 ms · seekdb 37.3 ms
+			59 container results
+				182 container
+					183 text 01 gpu-memory.md 块 1 · RRF 0.0325 GPU memory limits
+A large batch can exceed available graphics memory. Reduce batch size or switch to the WASM path on a device without a compatible GPU. Dispose the old inference session before changing precision or backend.
+				184 container
+					185 text 02 browser-gpu.md 块 1 · RRF 0.0323 Browser GPU inference
+WebGPU runs neural network tensor operations on a local graphics adapter. Request a GPU adapter before creating a GPU device. FP16 execution requires the shader-f16 feature. If the adapter is unavailable, fall back to WebAssembly on the CPU.
+				186 container
+					187 text 03 wasm-fallback.md 块 1 · RRF 0.0318 CPU fallback
+WebAssembly provides offline CPU inference when WebGPU is unavailable. Run inference in a dedicated Web Worker to keep the interface responsive. Cross-origin isolation enables SharedArrayBuffer and parallel WASM threads.
+				188 container
+					189 text 04 embedding-batches.md 块 1 · RRF 0.0315 Batching embeddings
+Encoding several documents in one batch amortizes inference overhead. Pad sequences within a batch and choose a modest batch size to fit GPU memory. Measure documents per second with the same corpus and model.
+				190 container
+					191 text 05 offline.md 块 1 · RRF 0.0303 Offline privacy
+Download a public model once and serve its weights from the local computer. Both document embeddings and query embeddings are computed in the browser. Do not send text to a hosted inference API.
+			66 text 03
+			67 heading 可复现实验室, Value: 2
+				68 text 可复现实验室
+			69 text 真实推理 · 真实数据库
+			70 text 同一设备、32 篇笔记、18 个问题。基线与 INT8 / FP16 分别预热，并保留 3 轮原始数据。测试使用独立集合，完成后返回当前知识库。
+			71 button 运行量化与性能对比, ID: benchmark
+			72 button 模型冷 / 热加载对照, ID: cold
+			73 button 验证增量、幂等与集合隔离, ID: validate
+			74 button 验证禁用 GPU 后自动降级, ID: fallback
+			99 table
+				100 row
+					101 cell
+						102 text 配置
+					103 cell
+						104 text 文档 / 秒
+					105 cell
+						106 text 查询 E2E
+					107 cell
+						108 text DB 检索
+					109 cell
+						110 text Recall@3
+					111 cell
+						112 text nDCG@3
+				113 row
+					114 cell
+						115 text WASM FP32 B1
+					116 cell
+						117 text 21.4
+					118 cell
+						119 text 37.9 ms
+					120 cell
+						121 text 8.2 ms
+					122 cell
+						123 text 1.000
+					124 cell
+						125 text 0.959
+				126 row
+					127 cell
+						128 text WASM Q8 B1
+					129 cell
+						130 text 27.2
+					131 cell
+						132 text 36.9 ms
+					133 cell
+						134 text 9.2 ms
+					135 cell
+						136 text 1.000
+					137 cell
+						138 text 0.959
+				139 row
+					140 cell
+						141 text WASM Q8 B8
+					142 cell
+						143 text 28.0
+					144 cell
+						145 text 36.3 ms
+					146 cell
+						147 text 8.8 ms
+					148 cell
+						149 text 1.000
+					150 cell
+						151 text 0.959
+				152 row
+					153 cell
+						154 text WEBGPU FP32 B8
+					155 cell
+						156 text 184.5
+					157 cell
+						158 text 47.1 ms
+					159 cell
+						160 text 7.4 ms
+					161 cell
+						162 text 1.000
+					163 cell
+						164 text 0.959
+				165 row
+					166 cell
+						167 text WEBGPU FP16 B8
+					168 cell
+						169 text 213.4
+					170 cell
+						171 text 44.7 ms
+					172 cell
+						173 text 7.5 ms
+					174 cell
+						175 text 1.000
+					176 cell
+						177 text 0.959
+			75 container
+				76 button (collapsed) 原始实验记录与下载, Secondary Actions: Expand
+					77 text 原始实验记录与下载
+			78 text 端研 / seekdb × 端侧 AI 本机推理 → 本机存储 → 数据库融合 → 原文回查
+
+The focused UI element is 1 AXWebArea 端研 Edge Notes · 本地语义知识库, URL: localhost:8791/

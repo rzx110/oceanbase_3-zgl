@@ -1,0 +1,7 @@
+{
+  "source": "https://proxy.golang.org/github.com/oceanbase/seekdb-go/native/windows-amd64/@v/v1.4.0.zip",
+  "version": "1.4.0",
+  "sha256": "49b52927b5c379cec13161a9528a29a0cff5cd61d74b1c45692c5024d9857395",
+  "bundleSha256": "3a50225198ac67f26f1777dd02cd6a5357ceb0a7ed33fa78db05a2e7a33af295",
+  "deployment": "local Windows server; seekdb-js TCP; no remote database"
+}

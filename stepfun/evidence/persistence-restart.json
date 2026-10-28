@@ -1,0 +1,235 @@
+{
+  "collection": "edge_c0c6b2efad1f4cba8cfc37e3aee9d532",
+  "startedAt": "2026-10-28T07:37:59.429Z",
+  "test": "actual server process restart; stored browser embeddings compared by digest, then browser query re-executed",
+  "before": [
+    {
+      "id": "bread",
+      "source": "bread.md",
+      "chunk": 0,
+      "textSha256": "2bda7218fbf21eb3e0c8c9bc717c253f08903fbff70e155e121f3dfb3fbb4fb5",
+      "vectorSha256": "2eae6cd7b2d5df0ab0704c5ce1c02b340106c6c17be37b868ed39ee584857acb"
+    },
+    {
+      "id": "browser-gpu",
+      "source": "browser-gpu.md",
+      "chunk": 0,
+      "textSha256": "de237baf9cb852d3acb12d4a3c9ec907ae45061dfc0bb95cd5947bcc14394280",
+      "vectorSha256": "b0c052c567973ec9acf8228974e5f8a36ef92f6bffc40011797f0b79a141165a"
+    },
+    {
+      "id": "browser-isolation",
+      "source": "browser-isolation.md",
+      "chunk": 0,
+      "textSha256": "c51868825caecc002581cc7b0f28f30b9fec0939490651d8b9449f2c84d6ffad",
+      "vectorSha256": "9c15140c017ae031d5def0b508b3a1f4175e354c32731d2382e6a6215c87a8e9"
+    },
+    {
+      "id": "cache-http",
+      "source": "cache-http.md",
+      "chunk": 0,
+      "textSha256": "ddfd6c7e2823a5b69f2d4c53497a5acf9452a6facd436acf16e32449eae2a39d",
+      "vectorSha256": "9c1a530098506980579608ae6ef1870891348fb839731de8ad5b3c208814ac70"
+    },
+    {
+      "id": "chunking",
+      "source": "chunking.md",
+      "chunk": 0,
+      "textSha256": "32733b286e97607978e79ca6745cf30a1747295f5016efa3d41ac51d576c357c",
+      "vectorSha256": "4ee71e8162591c94f23bf94e3b820166c4040da1e6862566cb477532b712848d"
+    },
+    {
+      "id": "coffee",
+      "source": "coffee.md",
+      "chunk": 0,
+      "textSha256": "42724f3f77618fa867d5ff829701115642f884d132977f7559e86661ad6d8fc8",
+      "vectorSha256": "1873dc4e173c504a34c83f31456f8c3e0c9e733917c581d2b63e34f033921b03"
+    },
+    {
+      "id": "collections",
+      "source": "collections.md",
+      "chunk": 0,
+      "textSha256": "9ec431638283d96b211e96d86a918be9265ba79cb9935435f9e34673667c936a",
+      "vectorSha256": "3a85c2cdf55d32291c806b120e61fc1810cead6013620efcfa49d7dc1ada9657"
+    },
+    {
+      "id": "csv-rows",
+      "source": "csv-rows.md",
+      "chunk": 0,
+      "textSha256": "4dbd0e8fecd613ea34e53f2c284b4a91f3c7e90e06a4c82efcd0bdbd81905925",
+      "vectorSha256": "d2b8845fbc5b5c8d87c51b9df92db2e09e9a541faffe4424d94fc9945579444c"
+    },
+    {
+      "id": "cycling",
+      "source": "cycling.md",
+      "chunk": 0,
+      "textSha256": "30b6f60a92f2eeaf153a3a81979f27714bff04b91dd5662a8d83664905f01d64",
+      "vectorSha256": "3bfaa7ddc4859d5ba4d8799ab84212d85f977e4daf08898a6955a417b1abe8c8"
+    },
+    {
+      "id": "embedding-batches",
+      "source": "embedding-batches.md",
+      "chunk": 0,
+      "textSha256": "4becf04fb7a591844cab2b6d38a31472c848c50f09dfb6052a1388c51a69fc48",
+      "vectorSha256": "701e421ba911b81aa34b0d5ce1c69569c21d6a8e8f6b12ccc16075f00ee6ae1d"
+    },
+    {
+      "id": "gardening",
+      "source": "gardening.md",
+      "chunk": 0,
+      "textSha256": "06d5a72f8b90428716ee6f11f4cdadf9c93a28f946c65119c1481460c0b1cea2",
+      "vectorSha256": "271b291cfe45d04d126f816d594bb319085e6ddccb74cc9f9470fe69e418942a"
+    },
+    {
+      "id": "git-history",
+      "source": "git-history.md",
+      "chunk": 0,
+      "textSha256": "e17681201736f0e46f28fa9f40c3befaa01612a07ff31b2c94687a4d36dea9c8",
+      "vectorSha256": "466fbe690c7b4d90fbff0422315256ea8a17498365ffc8dfd2292f35e539980f"
+    },
+    {
+      "id": "gpu-memory",
+      "source": "gpu-memory.md",
+      "chunk": 0,
+      "textSha256": "23b72ba8257bec8a28af40e97c0dde931dd7878d13d7b46a307b555b78b940e5",
+      "vectorSha256": "d797c76ddec7cd9e4143fbdef9a37964c27ee2822dda84b2e7772cb440e4ba77"
+    },
+    {
+      "id": "hybrid-rrf",
+      "source": "hybrid-rrf.md",
+      "chunk": 0,
+      "textSha256": "75ca349aafb1ea3783bd4a0be24e6d0deb528825ce775afae9320e9fc24ce9b5",
+      "vectorSha256": "47bb2ca9fed608f88e291268130acf48deb7d7100a3be3cf1dfb1c29894717c3"
+    },
+    {
+      "id": "idempotent",
+      "source": "idempotent.md",
+      "chunk": 0,
+      "textSha256": "1e217c164e3231f3ea54cbca0109c37996494a80b0fb2d8c624d15673b24a598",
+      "vectorSha256": "8fbef326b182c707281837528d29c5fe124a9c8dd88f3c4edbfada5e74009b14"
+    },
+    {
+      "id": "index-refresh",
+      "source": "index-refresh.md",
+      "chunk": 0,
+      "textSha256": "783fed22aa042f3df64a7881bb985e2cf21e8a11272a0aef84ba656424be1d2e",
+      "vectorSha256": "a0609636e30408b87980f792f1d15f4d07f96033edfaf9732e2178604ce54e4a"
+    },
+    {
+      "id": "input-validation",
+      "source": "input-validation.md",
+      "chunk": 0,
+      "textSha256": "aa1540427228d36277ff9499504b407b512eb3eb1cf49402b0d59ae12a37cc19",
+      "vectorSha256": "9fd0940106ceeaead7b45a6f16ce050a7d06535d24079f97d71b34480891159f"
+    },
+    {
+      "id": "model-cache",
+      "source": "model-cache.md",
+      "chunk": 0,
+      "textSha256": "b8da2da5427430d2acb4667e3e7261778e60c837cd8f4431c0f4aaf68898ba5b",
+      "vectorSha256": "0bba3dec7494459a5fa3375b416f3629a93ac94b4e53e07b172887b4ba0eb8df"
+    },
+    {
+      "id": "model-quantization",
+      "source": "model-quantization.md",
+      "chunk": 0,
+      "textSha256": "acd0b9527cea0aa7768e321aa42c0b4b9aeb3e58be15154a7ff18baf52d74ce6",
+      "vectorSha256": "28cfacae270287b3c257e7e405985e38a530ecc54eb762ef7bbe0a700aa1acb4"
+    },
+    {
+      "id": "music",
+      "source": "music.md",
+      "chunk": 0,
+      "textSha256": "ba5915f2c53c319f06ee266697f13f2ea670b731542922eb01cc1e45b4d2b160",
+      "vectorSha256": "e977abb393a10f720057f40a1003dc28323387704e7630155f4fec8687611289"
+    },
+    {
+      "id": "offline",
+      "source": "offline.md",
+      "chunk": 0,
+      "textSha256": "81af4c3099997ae55bf3fa18cd5c9c9bea688019259a26380e3792c1809a5e96",
+      "vectorSha256": "129076a52fe77abcbf041a5ed7b115645318f6f9ddb0243618bfe2e4b66b201e"
+    },
+    {
+      "id": "pdf-pages",
+      "source": "pdf-pages.md",
+      "chunk": 0,
+      "textSha256": "4f40724320600a144c940dc125bc7eaea80c5a1f688ca7e525406bf9adc1b14f",
+      "vectorSha256": "605c01dcc90e620fb9198be0826937e052746995d70dcb6cb42719a5f5eb9ad9"
+    },
+    {
+      "id": "perf-median",
+      "source": "perf-median.md",
+      "chunk": 0,
+      "textSha256": "fdd76d34bfe1f6a9df8513451080d8550583e76549895a83014b4df7b5af702c",
+      "vectorSha256": "b97b818936ee9475d288c800fc466f3bfa4e0971156cafc07ee41c2c1d52ebcd"
+    },
+    {
+      "id": "persistent-db",
+      "source": "persistent-db.md",
+      "chunk": 0,
+      "textSha256": "3b42a12a419d744cd0e6accc6d5a622e25c54a84f1e60c1a22ea883435be9ce9",
+      "vectorSha256": "c29ad0abc6442723cce5c0a16d3a8b615378ce7ecda650d39e45accfb796b3ad"
+    },
+    {
+      "id": "pooling",
+      "source": "pooling.md",
+      "chunk": 0,
+      "textSha256": "adb86eaffc6b7668da4e7458dfc5d4f616e9f56a2c82416d27856e9bf8292d94",
+      "vectorSha256": "1f56f7be28e6cb79bf7b3d96442ab1d0fba2e4fb1f512f06eeea6d659855f649"
+    },
+    {
+      "id": "recall",
+      "source": "recall.md",
+      "chunk": 0,
+      "textSha256": "32b4d704a2236e63a4ea8955803b56c62f9693170f00c096d0bc0a372357ae97",
+      "vectorSha256": "41fb9818f20b6e5fe820b027bba14475e6279c9f0324b3407efc15fd9f1f5389"
+    },
+    {
+      "id": "retry",
+      "source": "retry.md",
+      "chunk": 0,
+      "textSha256": "66c4fed6e5406428f9893f5cbe754473bf842578cb1c0860a0a37bb3b2e5747b",
+      "vectorSha256": "ba2ddf1a3b4d67d129bfe2bbaf5bdbc2dbd637f514afd23b291970a953fabd1f"
+    },
+    {
+      "id": "source-citations",
+      "source": "source-citations.md",
+      "chunk": 0,
+      "textSha256": "88fa8771e5dedb7db9ebf2ddf902be16ad848bcb46b25080830290845b01e129",
+      "vectorSha256": "05410f658e75bea919721e543ad90cf72fde69c708ba4756dc63706246e21fbb"
+    },
+    {
+      "id": "sql-parameters",
+      "source": "sql-parameters.md",
+      "chunk": 0,
+      "textSha256": "1ba3ff8d610e17d4676f1ea3b1ea25443892fbeaec373498aa7cf95379bb4626",
+      "vectorSha256": "02e68173f2eb3b2c8b666bdc268eddcae960bb2efc12cc1ae051409d7ec19f1e"
+    },
+    {
+      "id": "stars",
+      "source": "stars.md",
+      "chunk": 0,
+      "textSha256": "16d9530769c0a286c19008c71326e00820134fe122bb2e95fa054048857e21cd",
+      "vectorSha256": "7fb6e53e2ce9dc15be92648b9352d1fe3b2097323b4dfaf834bf4c15fbbe2f37"
+    },
+    {
+      "id": "tea",
+      "source": "tea.md",
+      "chunk": 0,
+      "textSha256": "b2aa50b075c8bef0b7d174c05095d8db0dbca0627b5b893a365a295988d17892",
+      "vectorSha256": "1a5f31d71309af674e24dc9444c44c33e9562a175b0cd99dccd2acc0c10b7f39"
+    },
+    {
+      "id": "wasm-fallback",
+      "source": "wasm-fallback.md",
+      "chunk": 0,
+      "textSha256": "a5e0c88349fdfb359291d8fe86a69ff3b0e1252f9ebb98d1c26dd6fc1ac74fa8",
+      "vectorSha256": "f6d2e41fb79110155b0343656bffb3e1ad7f9b78981186bb517859e9c3078fe2"
+    }
+  ],
+  "beforeCount": 32,
+  "afterCount": 32,
+  "completedAt": "2026-10-28T07:38:15.735Z",
+  "passed": true
+}

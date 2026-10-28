@@ -1,0 +1,30 @@
+{
+  "name": "stepfun-edge-notes",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20.9"
+  },
+  "scripts": {
+    "setup": "node scripts/download-model.mjs",
+    "db:setup": "node scripts/setup-db.mjs",
+    "db:start": "node scripts/start-db.mjs",
+    "build": "vite build",
+    "start": "node server.mjs",
+    "test": "node --test tests/contract.test.mjs tests/database.test.mjs",
+    "check-db": "node scripts/check-db.mjs"
+  },
+  "dependencies": {
+    "seekdb": "1.4.0",
+    "@seekdb/js-bindings": "1.4.0",
+    "@huggingface/transformers": "3.8.1"
+  },
+  "devDependencies": {
+    "vite": "6.4.5"
+  },
+  "overrides": {
+    "adm-zip": "0.6.1",
+    "sharp": "0.35.5"
+  }
+}
